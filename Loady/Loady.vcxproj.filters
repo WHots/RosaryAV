@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Protections">
+      <UniqueIdentifier>{cc30d0d5-5153-4aa3-867a-e71aac48f850}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Protections\Encryption">
+      <UniqueIdentifier>{2acda750-f824-4121-8c43-dd78afe9dc3b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assembly">
+      <UniqueIdentifier>{5ada2714-0e63-4ce0-95ac-e6aa9cf6e839}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{7ba4e826-2096-42fb-aa81-fd7f708c6817}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="windows">
+      <UniqueIdentifier>{3c087ad2-36d0-4f76-9cbd-8f719e73f40b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Signatures">
+      <UniqueIdentifier>{c3d8e988-3ea3-4387-844d-d1ecd33109a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Signatures\Cheats">
+      <UniqueIdentifier>{176126f3-a20a-4557-9b3e-4c491297c66d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Signatures\Cryptography">
+      <UniqueIdentifier>{afc1e021-caf9-44ee-95bc-d931e1fe6ef7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Loady.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="procutils.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="antidbg.cpp">
+      <Filter>Protections</Filter>
+    </ClCompile>
+    <ClCompile Include="encrypt.cpp">
+      <Filter>Protections\Encryption</Filter>
+    </ClCompile>
+    <ClCompile Include="strutils.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="procutils.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="memutils.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="crytposignatures.h">
+      <Filter>Header Files\Signatures\Cryptography</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="strutils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="antidbg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="encrypt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="memutils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pointers.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ntdll.h">
+      <Filter>windows</Filter>
+    </ClInclude>
+    <ClInclude Include="cheatsignatures.h">
+      <Filter>Header Files\Signatures\Cheats</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
