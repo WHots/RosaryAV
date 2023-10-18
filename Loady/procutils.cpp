@@ -184,39 +184,34 @@ int IsTokenPresent(HANDLE hToken)
 }
 
 
-ModuleInfo MainModuleEx(DWORD processID) 
+ModuleInfo MainModuleInfoEx(DWORD processID)
 {
 
     ModuleInfo mainModuleInfo = { 0 };
 
     HANDLE processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
 
-    if (processHandle == NULL)        
+    if (processHandle == NULL)
         return mainModuleInfo;
 
 
     HMODULE modules[1];
     DWORD bytesNeeded;
 
-    if (EnumProcessModules(processHandle, modules, sizeof(modules), &bytesNeeded)) 
+    if (EnumProcessModules(processHandle, modules, sizeof(modules), &bytesNeeded))
     {
-        int moduleCount = bytesNeeded / sizeof(HMODULE);
         TCHAR moduleName[MAX_PATH];
 
-        for (int i = 0; i < moduleCount; i++) 
+        if (GetModuleFileNameEx(processHandle, modules[0], moduleName, MAX_PATH))
         {
-            if (GetModuleFileNameEx(processHandle, modules[i], moduleName, MAX_PATH)) 
+            if (_tcsstr(moduleName, TEXT(".exe")))
             {
-                if (_tcsstr(moduleName, TEXT(".exe"))) 
-                {
-                    MODULEINFO moduleInfo;
+                MODULEINFO moduleInfo;
 
-                    if (GetModuleInformation(processHandle, modules[i], &moduleInfo, sizeof(moduleInfo))) 
-                    {
-                        mainModuleInfo.baseAddress = (DWORD)moduleInfo.lpBaseOfDll;
-                        mainModuleInfo.size = moduleInfo.SizeOfImage;
-                        break;
-                    }
+                if (GetModuleInformation(processHandle, modules[0], &moduleInfo, sizeof(moduleInfo)))
+                {
+                    mainModuleInfo.baseAddress = (DWORD)moduleInfo.lpBaseOfDll;
+                    mainModuleInfo.size = moduleInfo.SizeOfImage;
                 }
             }
         }

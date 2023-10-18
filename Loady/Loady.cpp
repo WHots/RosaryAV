@@ -26,7 +26,7 @@ int main()
 
     //DWORD pid = 1234;  // Replace with the process ID you want to query.
 
-    ModuleInfo mainMod = MainModuleEx(GetCurrentProcessId());
+    ModuleInfo mainMod = MainModuleInfoEx(GetCurrentProcessId());
 
     std::wcout << L"Size = " << mainMod.size << std::endl;
     std::wcout << L"Base Address = " << std::hex << mainMod.baseAddress << std::endl;

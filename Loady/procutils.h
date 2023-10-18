@@ -67,4 +67,4 @@ LPTSTR GetProcessSid(DWORD pid);
 /// and -1 if there's a failure during the process.
 /// </remarks>
 int IsTokenPresent(HANDLE hToken);
-ModuleInfo MainModuleEx(DWORD processID);
+ModuleInfo MainModuleInfoEx(DWORD processID);

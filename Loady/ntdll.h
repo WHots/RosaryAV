@@ -54,10 +54,31 @@ typedef struct SYSTEM_HANDLE
     USHORT Handle;
     PVOID Object;
     ACCESS_MASK GrantedAccess;
+
 } SYSTEM_HANDLE_INFORMATION_, * PSYSTEM_HANDLE_INFORMATION_;
 
 typedef struct SYSTEM_HANDLE_INFORMATION
 {
     ULONG HandleCount;
     SYSTEM_HANDLE Handles[1];
+
 } SYSTEM_HANDLE_INFORMATION, * PSYSTEM_HANDLE_INFORMATION;
+
+
+typedef struct _LDR_MODULE 
+{
+    LIST_ENTRY InLoadOrderModuleList;
+    LIST_ENTRY InMemoryOrderModuleList;
+    LIST_ENTRY InInitializationOrderModuleList;
+    PVOID BaseAddress;
+    PVOID EntryPoint;
+    ULONG SizeOfImage;
+    UNICODE_STRING FullDllName;
+    UNICODE_STRING BaseDllName;
+    ULONG Flags;
+    SHORT LoadCount;
+    SHORT TlsIndex;
+    LIST_ENTRY HashTableEntry;
+    ULONG TimeDateStamp;
+
+} LDR_MODULE, * PLDR_MODULE;
