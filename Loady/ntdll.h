@@ -1,5 +1,6 @@
 #pragma once
 #include <windows.h>
+#include <winternl.h>
 
 
 enum class ObjectType : ULONG 
@@ -82,3 +83,8 @@ typedef struct _LDR_MODULE
     ULONG TimeDateStamp;
 
 } LDR_MODULE, * PLDR_MODULE;
+
+
+typedef enum _MEMORY_INFORMATION_CLASS {
+    MemoryBasicInformation
+} MEMORY_INFORMATION_CLASS;

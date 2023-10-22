@@ -1,14 +1,18 @@
 #pragma once
 #include <Windows.h>
-#include <winternl.h>
 #include <iostream>
+
 #include <sddl.h>
 #include <tchar.h>
 
+
 #include "strutils.h"
 #include "memutils.h"
+
 #include "ntdll.h"
 #include "pointers.hpp"
+
+
 
 
 
@@ -21,26 +25,36 @@ struct ModuleInfo
 };
 
 
-
-std::vector<std::wstring> tokenPrivileges = 
+struct ProcessGenericInfo
 {
-        SE_CREATE_TOKEN_NAME,
-        SE_ASSIGNPRIMARYTOKEN_NAME,
-        SE_LOCK_MEMORY_NAME,
-        SE_INCREASE_QUOTA_NAME,
-        SE_UNSOLICITED_INPUT_NAME,
-        SE_MACHINE_ACCOUNT_NAME,
-        SE_TCB_NAME,
-        SE_SECURITY_NAME,
-        SE_TAKE_OWNERSHIP_NAME,
-        SE_LOAD_DRIVER_NAME,
-        SE_SYSTEM_PROFILE_NAME,
-        SE_SYSTEMTIME_NAME,
-        SE_PROF_SINGLE_PROCESS_NAME,
-        SE_INC_BASE_PRIORITY_NAME,
-        SE_CREATE_PAGEFILE_NAME,
-        SE_CREATE_PERMANENT_NAME
+    bool sectionFound;
+    PVOID sectionAddress;
+    SIZE_T sectionSize;
+    PVOID mainModuleAddress;
+    SIZE_T mainModuleSize;
 };
+
+
+//std::vector<std::wstring> tokenPrivileges = 
+//{
+//        SE_CREATE_TOKEN_NAME,
+//        SE_ASSIGNPRIMARYTOKEN_NAME,
+//        SE_LOCK_MEMORY_NAME,
+//        SE_INCREASE_QUOTA_NAME,
+//        SE_UNSOLICITED_INPUT_NAME,
+//        SE_MACHINE_ACCOUNT_NAME,
+//        SE_TCB_NAME,
+//        SE_SECURITY_NAME,
+//        SE_TAKE_OWNERSHIP_NAME,
+//        SE_LOAD_DRIVER_NAME,
+//        SE_SYSTEM_PROFILE_NAME,
+//        SE_SYSTEMTIME_NAME,
+//        SE_PROF_SINGLE_PROCESS_NAME,
+//        SE_INC_BASE_PRIORITY_NAME,
+//        SE_CREATE_PAGEFILE_NAME,
+//        SE_CREATE_PERMANENT_NAME
+//};
+
 
 
 /// <summary>
@@ -86,4 +100,32 @@ LPTSTR GetProcessSid(DWORD pid);
 /// and -1 if there's a failure during the process.
 /// </remarks>
 int IsTokenPresent(HANDLE hToken);
-ModuleInfo MainModuleInfoEx(DWORD processID);
+/// <summary>
+/// Retrieve information about the main module of a specified process.
+/// </summary>
+/// <param name="pid">Process ID of the target process.</param>
+/// <returns>Returns information about the main module of the process.</returns>
+/// <remarks>
+/// This function retrieves information about the main module of a specified process, including its base address and size.
+/// It requires the process ID (pid) as an input parameter. If the process doesn't exist or if there's an error during the process,
+/// the returned ModuleInfo structure will have its members set to zero.
+/// </remarks>
+inline ModuleInfo MainModuleInfoEx(HANDLE hProcess);
+/// <summary>
+/// Check if a process was started in a suspended state.
+/// </summary>
+/// <param name="pid">Process ID of the target process.</param>
+/// <returns>Returns 1 if the process was started in a suspended state, 0 if it wasn't, and -1 in case of failure.</returns>
+/// <remarks>
+/// This function checks if a specified process was started in a suspended state. It uses the NtQueryInformationProcess function
+/// (from the ntdll.dll) to retrieve information about the process. If the process was started in a suspended state, the function returns 1;
+/// otherwise, it returns 0. In case of a failure, it returns -1.
+/// </remarks>
+int StartedSuspended(DWORD pid);
+/// <summary>
+/// Query information about a specific memory section in a remote process.
+/// </summary>
+/// <param name="section">The name of the memory section to search for in the target process.</param>
+/// <param name="pid">The Process ID (PID) of the target process.</param>
+/// <returns>Returns a ProcessGenericInfo structure containing information about the specified memory section in the target process.</returns>
+ProcessGenericInfo ProcessInfoQueryGeneric(wchar_t* section, DWORD pid);

@@ -24,6 +24,7 @@
     <ProjectGuid>{54a3ee1c-b379-484f-becb-fbc0a223c064}</ProjectGuid>
     <RootNamespace>Loady</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>RosaryAV</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -128,22 +129,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="antidbg.cpp" />
     <ClCompile Include="crytposignatures.h" />
     <ClCompile Include="encrypt.cpp" />
     <ClCompile Include="Loady.cpp" />
     <ClCompile Include="memutils.cpp" />
+    <ClCompile Include="processmanager.cpp" />
     <ClCompile Include="procutils.cpp" />
     <ClCompile Include="procutils.h" />
     <ClCompile Include="strutils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="antidbg.h" />
     <ClInclude Include="cheatsignatures.h" />
     <ClInclude Include="encrypt.h" />
     <ClInclude Include="memutils.h" />
     <ClInclude Include="ntdll.h" />
     <ClInclude Include="pointers.hpp" />
+    <ClInclude Include="processmanager.h" />
     <ClInclude Include="strutils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

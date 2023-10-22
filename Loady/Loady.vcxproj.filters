@@ -37,6 +37,12 @@
     <Filter Include="Header Files\Signatures\Cryptography">
       <UniqueIdentifier>{afc1e021-caf9-44ee-95bc-d931e1fe6ef7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Managers">
+      <UniqueIdentifier>{e5be0071-eec8-4aa8-b884-1632a2fd90f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Managers">
+      <UniqueIdentifier>{18dfa65f-2221-42f9-a065-ed7a22bcbd1c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Loady.cpp">
@@ -44,9 +50,6 @@
     </ClCompile>
     <ClCompile Include="procutils.h">
       <Filter>Header Files</Filter>
-    </ClCompile>
-    <ClCompile Include="antidbg.cpp">
-      <Filter>Protections</Filter>
     </ClCompile>
     <ClCompile Include="encrypt.cpp">
       <Filter>Protections\Encryption</Filter>
@@ -63,12 +66,12 @@
     <ClCompile Include="crytposignatures.h">
       <Filter>Header Files\Signatures\Cryptography</Filter>
     </ClCompile>
+    <ClCompile Include="processmanager.cpp">
+      <Filter>Managers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="strutils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="antidbg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="encrypt.h">
@@ -85,6 +88,9 @@
     </ClInclude>
     <ClInclude Include="cheatsignatures.h">
       <Filter>Header Files\Signatures\Cheats</Filter>
+    </ClInclude>
+    <ClInclude Include="processmanager.h">
+      <Filter>Header Files\Managers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

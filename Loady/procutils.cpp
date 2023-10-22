@@ -63,12 +63,7 @@ PEB* PebBaseAddress(DWORD pid)
 
     auto ptrNtQueryInformationProcess = (pointers::TNtQueryInformationProcess)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQueryInformationProcess");
 
-    return (ptrNtQueryInformationProcess)
-        ? ((CloseHandle(hProcess), (ptrNtQueryInformationProcess(hProcess, ProcessBasicInformation, &pbi, sizeof(pbi), nullptr) == 0)) ? pbi.PebBaseAddress : nullptr)
-        : nullptr;
-
-
-    // ...
+    return (ptrNtQueryInformationProcess) ? ((CloseHandle(hProcess), (ptrNtQueryInformationProcess(hProcess, ProcessBasicInformation, &pbi, sizeof(pbi), nullptr) == 0)) ? pbi.PebBaseAddress : nullptr) : nullptr;
 }
 
 
@@ -184,31 +179,29 @@ int IsTokenPresent(HANDLE hToken)
 }
 
 
-ModuleInfo MainModuleInfoEx(DWORD processID)
+inline ModuleInfo MainModuleInfoEx(HANDLE hProcess)
 {
 
-    ModuleInfo mainModuleInfo = { 0 };
+    ModuleInfo mainModuleInfo{};
 
-    HANDLE processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
-
-    if (processHandle == NULL)
+    if (!hProcess)
         return mainModuleInfo;
 
 
     HMODULE modules[1];
     DWORD bytesNeeded;
 
-    if (EnumProcessModules(processHandle, modules, sizeof(modules), &bytesNeeded))
+    if (EnumProcessModules(hProcess, modules, sizeof(modules), &bytesNeeded))
     {
         TCHAR moduleName[MAX_PATH];
 
-        if (GetModuleFileNameEx(processHandle, modules[0], moduleName, MAX_PATH))
+        if (GetModuleFileNameEx(hProcess, modules[0], moduleName, MAX_PATH))
         {
             if (_tcsstr(moduleName, TEXT(".exe")))
             {
                 MODULEINFO moduleInfo;
 
-                if (GetModuleInformation(processHandle, modules[0], &moduleInfo, sizeof(moduleInfo)))
+                if (GetModuleInformation(hProcess, modules[0], &moduleInfo, sizeof(moduleInfo)))
                 {
                     mainModuleInfo.baseAddress = (DWORD)moduleInfo.lpBaseOfDll;
                     mainModuleInfo.size = moduleInfo.SizeOfImage;
@@ -217,6 +210,120 @@ ModuleInfo MainModuleInfoEx(DWORD processID)
         }
     }
 
-    CloseHandle(processHandle);
+    //  CloseHandle(hProcess);
     return mainModuleInfo;
+}
+
+
+int StartedSuspended(DWORD pid)
+{
+
+    int fails = -1;
+    auto fpNtQueryInformationProcess = (pointers::TNtQueryInformationProcess)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQueryInformationProcess");
+
+    if (!fpNtQueryInformationProcess)
+        return fails;
+   
+    
+    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, false, pid);
+
+    if (hProcess == INVALID_HANDLE_VALUE)
+        return fails;
+
+    PROCESS_BASIC_INFORMATION pbi{};
+    ULONG returnLength;
+
+    NTSTATUS status = fpNtQueryInformationProcess(hProcess, ProcessBasicInformation, &pbi, sizeof(pbi), &returnLength);
+
+    BOOL isBeingDebugged = (BOOL)pbi.PebBaseAddress->BeingDebugged;
+    BOOL createSuspended = isBeingDebugged & 0x04;
+    CloseHandle(hProcess);
+
+    return createSuspended ? 1 : 0;
+}
+
+
+//void ScanPidForModules(DWORD pid)
+//{
+//
+//    auto hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
+//
+//    HMODULE hModules[1024];
+//    DWORD cbNeeded;
+//
+//    if (K32EnumProcessModules(hProcess, hModules, sizeof(hModules), &cbNeeded))
+//    {
+//        DWORD moduleCount = cbNeeded / sizeof(HMODULE);
+//
+//        for (DWORD i = 0; i < moduleCount; i++)
+//        {
+//           //
+//        }
+//    }
+//
+//    return;
+//}
+//
+//
+//BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
+//{
+//
+//    auto length = GetWindowTextLengthA(hwnd);
+//    DWORD processId;
+//
+//    if (length == 0)   
+//        return TRUE;
+//
+//    GetWindowThreadProcessId(hwnd, &processId);
+//
+//    ScanPidForModules(processId);
+//
+//    return TRUE;
+//}
+
+
+ProcessGenericInfo ProcessInfoQueryGeneric(wchar_t* section, DWORD pid)
+{
+
+    ProcessGenericInfo sectionInfo{};
+    sectionInfo.sectionFound = false;
+
+    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
+
+    if (!hProcess)
+        return sectionInfo;
+
+    ModuleInfo moduleInfo = MainModuleInfoEx(hProcess);
+    sectionInfo.mainModuleAddress = (PVOID)moduleInfo.baseAddress;
+    sectionInfo.mainModuleSize = moduleInfo.size;
+
+    pointers::fpNtQueryVirtualMemory pNtQueryVirtualMemory = (pointers::fpNtQueryVirtualMemory)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtQueryVirtualMemory");
+
+    PVOID BaseAddress = (PVOID)moduleInfo.baseAddress;
+
+    MEMORY_BASIC_INFORMATION mbi{};
+    SIZE_T returnLength;
+
+    NTSTATUS status = pNtQueryVirtualMemory(hProcess, BaseAddress, MemoryBasicInformation, &mbi, sizeof(mbi), &returnLength);
+
+    if (NT_SUCCESS(status)) 
+    {        
+        PIMAGE_DOS_HEADER DosHeader = static_cast<PIMAGE_DOS_HEADER>(BaseAddress);
+        PIMAGE_NT_HEADERS NtHeaders = reinterpret_cast<PIMAGE_NT_HEADERS>(reinterpret_cast<BYTE*>(BaseAddress) + DosHeader->e_lfanew);
+        PIMAGE_SECTION_HEADER SectionTable = IMAGE_FIRST_SECTION(NtHeaders);
+
+        for (int i = 0; i < NtHeaders->FileHeader.NumberOfSections; i++) 
+        {
+            if (wcscmp(stringutil::CharToWChar_T((char*)SectionTable[i].Name), section) == 0)
+            {
+                sectionInfo.sectionAddress = static_cast<PVOID>(static_cast<BYTE*>(BaseAddress) + SectionTable[i].VirtualAddress);
+                sectionInfo.sectionSize = SectionTable[i].SizeOfRawData;
+                sectionInfo.sectionFound = true;            
+                break;
+            }
+        }
+    }
+
+    CloseHandle(hProcess);
+    return sectionInfo;
 }

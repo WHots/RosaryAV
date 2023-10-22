@@ -1,16 +1,28 @@
-#include <iostream>
-#include "memutils.h"
 
-#include <tlhelp32.h>
-#include <sddl.h>
+#include <iostream>
+//#include "memutils.h"
+//#include <winternl.h>
+//#include <windows.h>
+//#include "pointers.hpp"
+//#include <tlhelp32.h>
+//#include <sddl.h>
 #include "procutils.h"
 
 
 
+//struct ProcessTarget
+//{
+//    ModuleInfo mainModule;
+//    int tokenCount;
+//    bool startedSuspended;
+//    int susHandleCounts;
+//};
+
 
 int main()
-{ 
+{     
 
+   //  ProcessInfoQueryGeneric();
     /*HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, 11740);
     const char* pattern = "\x45\x8B\xC1\x85\xC9";
     const char* mask = "xxxxx";
@@ -26,8 +38,8 @@ int main()
 
     //DWORD pid = 1234;  // Replace with the process ID you want to query.
 
-    ModuleInfo mainMod = MainModuleInfoEx(GetCurrentProcessId());
+    /*ModuleInfo mainMod = MainModuleInfoEx(GetCurrentProcessId());
 
     std::wcout << L"Size = " << mainMod.size << std::endl;
-    std::wcout << L"Base Address = " << std::hex << mainMod.baseAddress << std::endl;
+    std::wcout << L"Base Address = " << std::hex << mainMod.baseAddress << std::endl;*/
 }
