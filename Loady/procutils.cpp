@@ -52,11 +52,11 @@ FARPROC GetFunctionAddressW(HMODULE moduleHandle, const wchar_t* method)
 }
 
 
-PEB* PebBaseAddress(DWORD pid)
+PEB* PebBaseAddress(HANDLE hProcess)
 {
 
     PROCESS_BASIC_INFORMATION pbi{};
-    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, false, pid);
+    //HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, false, pid);
 
     if (hProcess == INVALID_HANDLE_VALUE)
         return nullptr;
@@ -101,10 +101,10 @@ int GetHandleCount(DWORD pid, int type)
 }
 
 
-LPTSTR GetProcessSid(DWORD pid) 
+LPTSTR GetProcessSid(HANDLE hProcess) 
 {
 
-    HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+    // HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
 
     if (!hProcess) 
         return nullptr;
@@ -215,7 +215,7 @@ inline ModuleInfo MainModuleInfoEx(HANDLE hProcess)
 }
 
 
-int StartedSuspended(DWORD pid)
+int StartedSuspended(HANDLE hProcess)
 {
 
     int fails = -1;
@@ -225,7 +225,7 @@ int StartedSuspended(DWORD pid)
         return fails;
    
     
-    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, false, pid);
+    //  HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, false, pid);
 
     if (hProcess == INVALID_HANDLE_VALUE)
         return fails;
@@ -282,13 +282,13 @@ int StartedSuspended(DWORD pid)
 //}
 
 
-ProcessGenericInfo ProcessInfoQueryGeneric(wchar_t* section, DWORD pid)
+ProcessGenericInfo ProcessInfoQueryGeneric(wchar_t* section, HANDLE hProcess)
 {
 
     ProcessGenericInfo sectionInfo{};
     sectionInfo.sectionFound = false;
 
-    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
+    //  HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
 
     if (!hProcess)
         return sectionInfo;

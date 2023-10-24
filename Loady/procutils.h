@@ -1,14 +1,11 @@
 #pragma once
 #include <Windows.h>
 #include <iostream>
-
 #include <sddl.h>
 #include <tchar.h>
 
-
 #include "strutils.h"
 #include "memutils.h"
-
 #include "ntdll.h"
 #include "pointers.hpp"
 
@@ -68,7 +65,7 @@ FARPROC GetFunctionAddressW(HMODULE moduleHandle, const wchar_t* method);
 /// Returns pointer to PEB base address.
 /// </summary>
 /// <returns>Pointer to PEB base address, otherwise nullptr.</returns>
-PEB* PebBaseAddress();
+PEB* PebBaseAddress(HANDLE hProcess);
 /// <summary>
 /// Get count of particular handle type.
 /// </summary>
@@ -88,7 +85,7 @@ int GetHandleCount(DWORD pid, int type);
 /// This function retrieves the SID of the user who owns the specified process. It uses Windows API functions to open the process, 
 /// extract the user's SID, and then converts the SID to a string representation.
 /// </remarks>
-LPTSTR GetProcessSid(DWORD pid);
+LPTSTR GetProcessSid(HANDLE hProcess);
 /// <summary>
 /// Check if a specific privilege is enabled for the given token.
 /// </summary>
@@ -121,11 +118,11 @@ inline ModuleInfo MainModuleInfoEx(HANDLE hProcess);
 /// (from the ntdll.dll) to retrieve information about the process. If the process was started in a suspended state, the function returns 1;
 /// otherwise, it returns 0. In case of a failure, it returns -1.
 /// </remarks>
-int StartedSuspended(DWORD pid);
+int StartedSuspended(HANDLE hProcess);
 /// <summary>
 /// Query information about a specific memory section in a remote process.
 /// </summary>
 /// <param name="section">The name of the memory section to search for in the target process.</param>
 /// <param name="pid">The Process ID (PID) of the target process.</param>
 /// <returns>Returns a ProcessGenericInfo structure containing information about the specified memory section in the target process.</returns>
-ProcessGenericInfo ProcessInfoQueryGeneric(wchar_t* section, DWORD pid);
+ProcessGenericInfo ProcessInfoQueryGeneric(wchar_t* section, HANDLE hProcess);
