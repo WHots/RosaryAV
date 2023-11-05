@@ -6,6 +6,7 @@
 
 
 
+
 FARPROC GetFunctionAddressW(HMODULE moduleHandle, const wchar_t* method)
 {
 
@@ -52,18 +53,39 @@ FARPROC GetFunctionAddressW(HMODULE moduleHandle, const wchar_t* method)
 }
 
 
-PEB* PebBaseAddress(HANDLE hProcess)
+inline PEB* PebBaseAddress(HANDLE hProcess)
 {
-
-    PROCESS_BASIC_INFORMATION pbi{};
-    //HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, false, pid);
 
     if (hProcess == INVALID_HANDLE_VALUE)
         return nullptr;
 
-    auto ptrNtQueryInformationProcess = (pointers::TNtQueryInformationProcess)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQueryInformationProcess");
+    auto ptrNtQueryInformationProcess = GetProcedureAddress<pointers::TNtQueryInformationProcess>(L"ntdll.dll", "NtQueryInformationProcess");
 
-    return (ptrNtQueryInformationProcess) ? ((CloseHandle(hProcess), (ptrNtQueryInformationProcess(hProcess, ProcessBasicInformation, &pbi, sizeof(pbi), nullptr) == 0)) ? pbi.PebBaseAddress : nullptr) : nullptr;
+    if (!ptrNtQueryInformationProcess)
+        return nullptr;
+
+    PROCESS_BASIC_INFORMATION pbi{};
+
+    NTSTATUS status = ptrNtQueryInformationProcess(hProcess, ProcessBasicInformation, &pbi, sizeof(pbi), NULL);
+
+    if (!NT_SUCCESS(status))
+        return nullptr;
+
+    return pbi.PebBaseAddress;
+}
+
+
+PVOID GetProcessHeapAddress(HANDLE hProcess)
+{
+
+    PEB* pebBase = PebBaseAddress(hProcess);
+
+    PVOID processHeapAddress = (PVOID)((char*)pebBase + 0x30);
+    PVOID processHeap;
+    SIZE_T bytesRead;
+
+    BOOL preadResult = ReadProcessMemory(hProcess, processHeapAddress, &processHeap, sizeof(processHeap), &bytesRead);
+    return (preadResult && bytesRead == sizeof(processHeap)) ? processHeap : nullptr;   
 }
 
 
@@ -75,7 +97,7 @@ int GetHandleCount(DWORD pid, int type)
     buffer = (PSYSTEM_HANDLE_INFORMATION)malloc(bufferSize);
     NTSTATUS status;
 
-    auto NtQuerySystemInformation = pointers::_NtQuerySystemInformation(GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQuerySystemInformation"));
+    auto NtQuerySystemInformation = GetProcedureAddress<pointers::_NtQuerySystemInformation>(L"ntdll.dll", "NtQuerySystemInformation");
     status = NtQuerySystemInformation(0x10, buffer, bufferSize, NULL);
 
     if (!NT_SUCCESS(status))
@@ -104,8 +126,6 @@ int GetHandleCount(DWORD pid, int type)
 LPTSTR GetProcessSid(HANDLE hProcess) 
 {
 
-    // HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
-
     if (!hProcess) 
         return nullptr;
     
@@ -130,7 +150,7 @@ LPTSTR GetProcessSid(HANDLE hProcess)
                 {
                     free(pTokenUser);
                     CloseHandle(hToken);
-                    CloseHandle(hProcess);
+                    //  CloseHandle(hProcess);
                     return sidString;
                 }
             }
@@ -141,25 +161,25 @@ LPTSTR GetProcessSid(HANDLE hProcess)
         CloseHandle(hToken);
     }
 
-    CloseHandle(hProcess);
+    //  CloseHandle(hProcess);
     return nullptr;
 }
 
 
-int IsTokenPresent(HANDLE hToken)
+int IsTokenPresent(HANDLE hToken, const wchar_t* privilegeType)
 {
 
     int fail = -1;
     NTSTATUS status;
 
-    auto NtPrivilegeCheck = pointers::fpNtPrivilegeCheck(GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtPrivilegeCheck"));
+    auto NtPrivilegeCheck = GetProcedureAddress<pointers::fpNtPrivilegeCheck>(L"ntdll.dll", "NtPrivilegeCheck");
 
     if (!NtPrivilegeCheck)
         return fail;
 
     LUID luid;
 
-    if(!LookupPrivilegeValueW(nullptr, SE_DEBUG_NAME, &luid))
+    if(!LookupPrivilegeValueW(nullptr, privilegeType, &luid))
         return fail;
 
     PRIVILEGE_SET requiredPrivileges{};
@@ -210,85 +230,92 @@ inline ModuleInfo MainModuleInfoEx(HANDLE hProcess)
         }
     }
 
-    //  CloseHandle(hProcess);
     return mainModuleInfo;
 }
 
 
-int StartedSuspended(HANDLE hProcess)
+inline int ThreadStartedSuspended(HANDLE hThread)
 {
 
-    int fails = -1;
-    auto fpNtQueryInformationProcess = (pointers::TNtQueryInformationProcess)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQueryInformationProcess");
+    auto NtQueryInformationThread = GetProcedureAddress<pointers::fpNtQueryInformationThread>(L"ntdll.dll", "NtQueryInformationThread");
 
-    if (!fpNtQueryInformationProcess)
-        return fails;
-   
+    if (!NtQueryInformationThread)
+        return -1;
     
-    //  HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, false, pid);
 
-    if (hProcess == INVALID_HANDLE_VALUE)
-        return fails;
+    THREAD_BASIC_INFORMATION tbi{};
+    NTSTATUS status = NtQueryInformationThread(hThread, (THREADINFOCLASS)0x00, &tbi, sizeof(tbi), nullptr);
 
-    PROCESS_BASIC_INFORMATION pbi{};
-    ULONG returnLength;
-
-    NTSTATUS status = fpNtQueryInformationProcess(hProcess, ProcessBasicInformation, &pbi, sizeof(pbi), &returnLength);
-
-    BOOL isBeingDebugged = (BOOL)pbi.PebBaseAddress->BeingDebugged;
-    BOOL createSuspended = isBeingDebugged & 0x04;
-    CloseHandle(hProcess);
-
-    return createSuspended ? 1 : 0;
+    if (!NT_SUCCESS(status))
+        return -1;
+    
+    return (tbi.CreateFlags & 0x00000001) ? 1 : 0;
 }
 
 
-//void ScanPidForModules(DWORD pid)
-//{
-//
-//    auto hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
-//
-//    HMODULE hModules[1024];
-//    DWORD cbNeeded;
-//
-//    if (K32EnumProcessModules(hProcess, hModules, sizeof(hModules), &cbNeeded))
-//    {
-//        DWORD moduleCount = cbNeeded / sizeof(HMODULE);
-//
-//        for (DWORD i = 0; i < moduleCount; i++)
-//        {
-//           //
-//        }
-//    }
-//
-//    return;
-//}
-//
-//
-//BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
-//{
-//
-//    auto length = GetWindowTextLengthA(hwnd);
-//    DWORD processId;
-//
-//    if (length == 0)   
-//        return TRUE;
-//
-//    GetWindowThreadProcessId(hwnd, &processId);
-//
-//    ScanPidForModules(processId);
-//
-//    return TRUE;
-//}
+int GetMainThreadState(DWORD pid)
+{
+    HANDLE hMainThread = NULL;
+    FILETIME earliestCreationTime{};
+    int result = -1;
+
+    HANDLE hThreadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, pid);
+
+    if (hThreadSnapshot != INVALID_HANDLE_VALUE)
+    {
+        THREADENTRY32 te32{};
+        te32.dwSize = sizeof(THREADENTRY32);
+
+        if (Thread32First(hThreadSnapshot, &te32))
+        {
+            do
+            {
+                if (te32.th32OwnerProcessID == pid)
+                {
+                    HANDLE hThread = OpenThread(THREAD_QUERY_INFORMATION, FALSE, te32.th32ThreadID);
+
+                    if (hThread)
+                    {
+                        FILETIME creationTime, exitTime, kernelTime, userTime;
+
+                        if (GetThreadTimes(hThread, &creationTime, &exitTime, &kernelTime, &userTime))
+                        {
+                            LONG comparisonResult = CompareFileTime(&creationTime, &earliestCreationTime);
+
+                            if (hMainThread == NULL || comparisonResult == -1)
+                            {
+                                earliestCreationTime = creationTime;
+
+                                if (hMainThread)
+                                    CloseHandle(hMainThread);
+
+                                hMainThread = hThread;
+                            }
+                            else
+                                CloseHandle(hThread);
+                        }
+                    }
+                }
+            } while (Thread32Next(hThreadSnapshot, &te32));
+        }
+        CloseHandle(hThreadSnapshot);
+    }
+
+    if (hMainThread)
+    {
+        result = ThreadStartedSuspended(hMainThread);
+        CloseHandle(hMainThread);
+    }
+
+    return result;
+}
 
 
-ProcessGenericInfo ProcessInfoQueryGeneric(wchar_t* section, HANDLE hProcess)
+ProcessGenericInfo ProcessInfoQueryGeneric(const wchar_t* section, HANDLE hProcess)
 {
 
     ProcessGenericInfo sectionInfo{};
     sectionInfo.sectionFound = false;
-
-    //  HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
 
     if (!hProcess)
         return sectionInfo;
@@ -297,7 +324,7 @@ ProcessGenericInfo ProcessInfoQueryGeneric(wchar_t* section, HANDLE hProcess)
     sectionInfo.mainModuleAddress = (PVOID)moduleInfo.baseAddress;
     sectionInfo.mainModuleSize = moduleInfo.size;
 
-    pointers::fpNtQueryVirtualMemory pNtQueryVirtualMemory = (pointers::fpNtQueryVirtualMemory)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtQueryVirtualMemory");
+    pointers::fpNtQueryVirtualMemory pNtQueryVirtualMemory = (pointers::fpNtQueryVirtualMemory)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQueryVirtualMemory");
 
     PVOID BaseAddress = (PVOID)moduleInfo.baseAddress;
 
@@ -324,6 +351,5 @@ ProcessGenericInfo ProcessInfoQueryGeneric(wchar_t* section, HANDLE hProcess)
         }
     }
 
-    CloseHandle(hProcess);
     return sectionInfo;
 }

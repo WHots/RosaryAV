@@ -1,12 +1,14 @@
 
 #include <iostream>
+#include "procutils.h"
+
 //#include "memutils.h"
 //#include <winternl.h>
 //#include <windows.h>
 //#include "pointers.hpp"
 //#include <tlhelp32.h>
 //#include <sddl.h>
-#include "procutils.h"
+//#include "procutils.h"
 
 
 
@@ -20,8 +22,32 @@
 
 
 int main()
-{     
+{    
 
+    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, GetCurrentProcessId());
+    PVOID heapAddress = GetProcessHeapAddress(hProcess);
+
+    if (heapAddress == nullptr)
+    {
+        std::cout << "fails " << std::endl;
+    }
+    else
+    {
+        std::cout << "Heap Address: 0x" << std::hex << reinterpret_cast<std::uintptr_t>(heapAddress) << std::dec << std::endl;
+    }
+    //PEB* pebBase = PebBaseAddress(hProcess);
+
+    //PVOID processHeapAddress = (PVOID)((char*)pebBase + 0x30);
+
+    //PVOID processHeap;
+    //SIZE_T bytesRead;
+    //if (!ReadProcessMemory(hProcess, processHeapAddress, &processHeap, sizeof(processHeap), &bytesRead)) {
+    //    return 1;
+    //}
+
+    //std::cout << "Process Heap Address: " << processHeap << std::endl;
+
+    
    //  ProcessInfoQueryGeneric();
     /*HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, 11740);
     const char* pattern = "\x45\x8B\xC1\x85\xC9";
