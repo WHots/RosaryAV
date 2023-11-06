@@ -218,7 +218,6 @@ inline ModuleInfo MainModuleInfoEx(HANDLE hProcess)
             }
         }
     }
-
     return mainModuleInfo;
 }
 
