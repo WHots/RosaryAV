@@ -25,16 +25,10 @@ int main()
 {    
 
     HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, GetCurrentProcessId());
-    PVOID heapAddress = GetProcessHeapAddress(hProcess);
 
-    if (heapAddress == nullptr)
-    {
-        std::cout << "fails " << std::endl;
-    }
-    else
-    {
-        std::cout << "Heap Address: 0x" << std::hex << reinterpret_cast<std::uintptr_t>(heapAddress) << std::dec << std::endl;
-    }
+    LPTSTR test = GetProcessSid(hProcess);
+    wprintf(L"%s\n", test);
+    
     //PEB* pebBase = PebBaseAddress(hProcess);
 
     //PVOID processHeapAddress = (PVOID)((char*)pebBase + 0x30);

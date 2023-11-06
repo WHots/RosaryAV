@@ -35,9 +35,9 @@ struct ProcessGenericInfo
 
 
 template <typename T>
-inline T GetProcedureAddress(const wchar_t* module, const char* procedure)
+inline T DynamicImport(const wchar_t* module, const char* method)
 {
-    return reinterpret_cast<T>(GetProcAddress(GetModuleHandleW(module), procedure));
+    return reinterpret_cast<T>(GetProcAddress(GetModuleHandleW(module), method));
 }
 
 

@@ -7,50 +7,50 @@
 
 
 
-FARPROC GetFunctionAddressW(HMODULE moduleHandle, const wchar_t* method)
-{
-
-    if (!moduleHandle)       
-        return nullptr;
-    
-
-    PIMAGE_DOS_HEADER dosHeader = (PIMAGE_DOS_HEADER)moduleHandle;
-    PIMAGE_NT_HEADERS ntHeaders = (PIMAGE_NT_HEADERS)((DWORD_PTR)moduleHandle + dosHeader->e_lfanew);
-    PIMAGE_IMPORT_DESCRIPTOR importDescriptor = (PIMAGE_IMPORT_DESCRIPTOR)((DWORD_PTR)moduleHandle + ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
-
-    if (importDescriptor != NULL)
-    {
-        while (importDescriptor->Name != 0)
-        {
-            const char* importedModuleName = (const char*)((DWORD_PTR)moduleHandle + importDescriptor->Name);
-
-            PIMAGE_THUNK_DATA thunk = (PIMAGE_THUNK_DATA)((DWORD_PTR)moduleHandle + importDescriptor->OriginalFirstThunk);
-
-            while (thunk && thunk->u1.Function)
-            {
-                if (!(thunk->u1.Ordinal & IMAGE_ORDINAL_FLAG))
-                {
-                    PIMAGE_IMPORT_BY_NAME importByName = (PIMAGE_IMPORT_BY_NAME)((DWORD_PTR)moduleHandle + thunk->u1.AddressOfData);
-                    char* importedFunctionName = (char*)importByName->Name;
-                    wchar_t* wideImportedFunctionName = stringutil::CharToWChar_T(importedFunctionName);                    
-
-                    if (WIDESTRING_COMPARE(method, wideImportedFunctionName) == 0)
-                    {                       
-                        DWORD_PTR functionRVA = ntHeaders->OptionalHeader.ImageBase + (DWORD_PTR)thunk->u1.Function;     
-                        delete[] wideImportedFunctionName;
-                        return (FARPROC)functionRVA;
-                    }   
-
-                    delete[] wideImportedFunctionName;
-                }
-                thunk++;
-            }
-            importDescriptor++;
-        }
-    }
-
-    return nullptr;
-}
+//FARPROC GetFunctionAddressW(HMODULE moduleHandle, const wchar_t* method)
+//{
+//
+//    if (!moduleHandle)       
+//        return nullptr;
+//    
+//
+//    PIMAGE_DOS_HEADER dosHeader = (PIMAGE_DOS_HEADER)moduleHandle;
+//    PIMAGE_NT_HEADERS ntHeaders = (PIMAGE_NT_HEADERS)((DWORD_PTR)moduleHandle + dosHeader->e_lfanew);
+//    PIMAGE_IMPORT_DESCRIPTOR importDescriptor = (PIMAGE_IMPORT_DESCRIPTOR)((DWORD_PTR)moduleHandle + ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
+//
+//    if (importDescriptor != NULL)
+//    {
+//        while (importDescriptor->Name != 0)
+//        {
+//            const char* importedModuleName = (const char*)((DWORD_PTR)moduleHandle + importDescriptor->Name);
+//
+//            PIMAGE_THUNK_DATA thunk = (PIMAGE_THUNK_DATA)((DWORD_PTR)moduleHandle + importDescriptor->OriginalFirstThunk);
+//
+//            while (thunk && thunk->u1.Function)
+//            {
+//                if (!(thunk->u1.Ordinal & IMAGE_ORDINAL_FLAG))
+//                {
+//                    PIMAGE_IMPORT_BY_NAME importByName = (PIMAGE_IMPORT_BY_NAME)((DWORD_PTR)moduleHandle + thunk->u1.AddressOfData);
+//                    char* importedFunctionName = (char*)importByName->Name;
+//                    wchar_t* wideImportedFunctionName = stringutil::CharToWChar_T(importedFunctionName);                    
+//
+//                    if (WIDESTRING_COMPARE(method, wideImportedFunctionName) == 0)
+//                    {                       
+//                        DWORD_PTR functionRVA = ntHeaders->OptionalHeader.ImageBase + (DWORD_PTR)thunk->u1.Function;     
+//                        delete[] wideImportedFunctionName;
+//                        return (FARPROC)functionRVA;
+//                    }   
+//
+//                    delete[] wideImportedFunctionName;
+//                }
+//                thunk++;
+//            }
+//            importDescriptor++;
+//        }
+//    }
+//
+//    return nullptr;
+//}
 
 
 inline PEB* PebBaseAddress(HANDLE hProcess)
@@ -59,7 +59,7 @@ inline PEB* PebBaseAddress(HANDLE hProcess)
     if (hProcess == INVALID_HANDLE_VALUE)
         return nullptr;
 
-    auto ptrNtQueryInformationProcess = GetProcedureAddress<pointers::TNtQueryInformationProcess>(L"ntdll.dll", "NtQueryInformationProcess");
+    auto ptrNtQueryInformationProcess = DynamicImport<pointers::TNtQueryInformationProcess>(L"ntdll.dll", "NtQueryInformationProcess");
 
     if (!ptrNtQueryInformationProcess)
         return nullptr;
@@ -81,7 +81,7 @@ PVOID GetProcessHeapAddress(HANDLE hProcess)
     PEB* pebBase = PebBaseAddress(hProcess);
 
     PVOID processHeapAddress = (PVOID)((char*)pebBase + 0x30);
-    PVOID processHeap;
+    PVOID processHeap = nullptr;
     SIZE_T bytesRead;
 
     BOOL preadResult = ReadProcessMemory(hProcess, processHeapAddress, &processHeap, sizeof(processHeap), &bytesRead);
@@ -97,7 +97,7 @@ int GetHandleCount(DWORD pid, int type)
     buffer = (PSYSTEM_HANDLE_INFORMATION)malloc(bufferSize);
     NTSTATUS status;
 
-    auto NtQuerySystemInformation = GetProcedureAddress<pointers::_NtQuerySystemInformation>(L"ntdll.dll", "NtQuerySystemInformation");
+    auto NtQuerySystemInformation = DynamicImport<pointers::_NtQuerySystemInformation>(L"ntdll.dll", "NtQuerySystemInformation");
     status = NtQuerySystemInformation(0x10, buffer, bufferSize, NULL);
 
     if (!NT_SUCCESS(status))
@@ -126,43 +126,33 @@ int GetHandleCount(DWORD pid, int type)
 LPTSTR GetProcessSid(HANDLE hProcess) 
 {
 
-    if (!hProcess) 
+    HANDLE hToken = nullptr;
+
+    auto NtOpenProcessToken = DynamicImport<pointers::fpNtOpenProcessToken>(L"ntdll.dll", "NtOpenProcessToken");
+
+    if (!NT_SUCCESS(NtOpenProcessToken(hProcess, TOKEN_QUERY, &hToken)))
         return nullptr;
     
+    std::unique_ptr<void, decltype(&CloseHandle)> tokenGuard(hToken, CloseHandle);
 
-    HANDLE hToken = nullptr;
+    auto NtQueryInformationToken = DynamicImport<pointers::fpNtQueryInformationToken>(L"ntdll.dll", "NtQueryInformationToken");
+
+    DWORD dwSize = 0;
+    NtQueryInformationToken(hToken, TokenUser, NULL, 0, &dwSize);
+
+    auto buffer = std::make_unique<BYTE[]>(dwSize);
+
+    if (!NT_SUCCESS(NtQueryInformationToken(hToken, TokenUser, buffer.get(), dwSize, &dwSize)))
+        return nullptr;
+    
     LPTSTR sidString = nullptr;
 
-    if (OpenProcessToken(hProcess, TOKEN_QUERY, &hToken))
-    {
-        DWORD dwSize = 0;
-        GetTokenInformation(hToken, TokenUser, NULL, 0, &dwSize);
+    if (!ConvertSidToStringSidW(reinterpret_cast<PTOKEN_USER>(buffer.get())->User.Sid, &sidString))
+        return nullptr;
+    
+    std::unique_ptr<TCHAR, decltype(&LocalFree)> sidGuard(sidString, LocalFree);
 
-        if (dwSize > 0) 
-        {
-            PTOKEN_USER pTokenUser = (PTOKEN_USER)malloc(dwSize);
-
-            if (GetTokenInformation(hToken, TokenUser, pTokenUser, dwSize, &dwSize)) 
-            {
-                PSID pSid = pTokenUser->User.Sid;
-
-                if (ConvertSidToStringSidW(pSid, &sidString)) 
-                {
-                    free(pTokenUser);
-                    CloseHandle(hToken);
-                    //  CloseHandle(hProcess);
-                    return sidString;
-                }
-            }
-
-            free(pTokenUser);
-        }
-
-        CloseHandle(hToken);
-    }
-
-    //  CloseHandle(hProcess);
-    return nullptr;
+    return _tcsdup(sidString);
 }
 
 
@@ -172,7 +162,7 @@ int IsTokenPresent(HANDLE hToken, const wchar_t* privilegeType)
     int fail = -1;
     NTSTATUS status;
 
-    auto NtPrivilegeCheck = GetProcedureAddress<pointers::fpNtPrivilegeCheck>(L"ntdll.dll", "NtPrivilegeCheck");
+    auto NtPrivilegeCheck = DynamicImport<pointers::fpNtPrivilegeCheck>(L"ntdll.dll", "NtPrivilegeCheck");
 
     if (!NtPrivilegeCheck)
         return fail;
@@ -237,7 +227,7 @@ inline ModuleInfo MainModuleInfoEx(HANDLE hProcess)
 inline int ThreadStartedSuspended(HANDLE hThread)
 {
 
-    auto NtQueryInformationThread = GetProcedureAddress<pointers::fpNtQueryInformationThread>(L"ntdll.dll", "NtQueryInformationThread");
+    auto NtQueryInformationThread = DynamicImport<pointers::fpNtQueryInformationThread>(L"ntdll.dll", "NtQueryInformationThread");
 
     if (!NtQueryInformationThread)
         return -1;
@@ -255,6 +245,7 @@ inline int ThreadStartedSuspended(HANDLE hThread)
 
 int GetMainThreadState(DWORD pid)
 {
+
     HANDLE hMainThread = NULL;
     FILETIME earliestCreationTime{};
     int result = -1;

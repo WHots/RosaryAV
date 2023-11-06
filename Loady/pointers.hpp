@@ -14,7 +14,8 @@ namespace pointers
     typedef NTSTATUS(NTAPI* fpNtQueryInformationThread)(HANDLE ThreadHandle,THREADINFOCLASS ThreadInformationClass, PVOID ThreadInformation, ULONG ThreadInformationLength, PULONG ReturnLength);
     typedef NTSTATUS(NTAPI* fpNtPrivilegeCheck)(HANDLE ClientToken, PPRIVILEGE_SET RequiredPrivileges, PBOOLEAN Result);
     typedef NTSTATUS(WINAPI* fpLdrQueryProcessModuleInformation)(PLDR_MODULE ModuleInformation,ULONG SizeOfModuleInformation,PULONG ReturnedSize);
-
+    typedef NTSTATUS(NTAPI* fpNtOpenProcessToken)(HANDLE ProcessHandle, ACCESS_MASK DesiredAccess, PHANDLE TokenHandle);
+    typedef NTSTATUS(NTAPI* fpNtQueryInformationToken)(HANDLE TokenHandle, TOKEN_INFORMATION_CLASS TokenInformationClass, PVOID TokenInformation, ULONG TokenInformationLength,PULONG ReturnLength);
     typedef NTSTATUS(WINAPI* fpNtQueryVirtualMemory)(HANDLE ProcessHandle, PVOID BaseAddress, MEMORY_INFORMATION_CLASS MemoryInformationClass, PVOID MemoryInformation, SIZE_T MemoryInformationLength, PSIZE_T ReturnLength);
 
 	using TNtQueryInformationProcess = NTSTATUS(NTAPI*)(HANDLE, PROCESSINFOCLASS, PVOID, ULONG, PULONG);
