@@ -118,6 +118,7 @@ int GetHandleCount(DWORD pid, int type)
         }
 
     }
+
     free(buffer);
     return count;
 }
