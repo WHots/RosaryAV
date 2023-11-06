@@ -112,11 +112,9 @@ int GetHandleCount(DWORD pid, int type)
     for (ULONG i = 0; i <= buffer->HandleCount; i++) 
     {
         if ((buffer->Handles[i].ProcessId == pid)) 
-        {
+        
             if (buffer->Handles[i].ObjectTypeNumber == type)
                 count += 1;
-        }
-
     }
 
     free(buffer);
