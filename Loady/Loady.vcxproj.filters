@@ -51,9 +51,6 @@
     <ClCompile Include="procutils.h">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="encrypt.cpp">
-      <Filter>Protections\Encryption</Filter>
-    </ClCompile>
     <ClCompile Include="strutils.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
@@ -72,9 +69,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="strutils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="encrypt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="memutils.h">
