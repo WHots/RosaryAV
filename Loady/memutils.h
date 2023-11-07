@@ -29,7 +29,7 @@ inline NTSTATUS NtReadVirtualMemory(HANDLE ProcessHandle, PVOID BaseAddress, PVO
 /// <param name="needle">Pointer to the subsequence to search for.</param>
 /// <param name="needle_len">Length of the subsequence to search for.</param>
 /// <returns>A pointer to the first occurrence of the subsequence if found, otherwise nullptr.</returns>
-void* memmem(const void* haystack, size_t haystack_len, const void* const needle, const size_t needle_len);
+inline void* memmem(const void* haystack, size_t haystack_len, const void* const needle, const size_t needle_len);
 /// <summary>
 /// Reads process memory via NtReadVirtualMemory for a specific byte string / pattern.
 /// </summary>

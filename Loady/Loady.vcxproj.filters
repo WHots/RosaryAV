@@ -83,7 +83,7 @@
     <ClInclude Include="cheatsignatures.h">
       <Filter>Header Files\Signatures\Cheats</Filter>
     </ClInclude>
-    <ClInclude Include="processmanager.h">
+    <ClInclude Include="processmanager.hpp">
       <Filter>Header Files\Managers</Filter>
     </ClInclude>
   </ItemGroup>

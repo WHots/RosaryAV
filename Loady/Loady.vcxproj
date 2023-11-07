@@ -119,6 +119,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -142,7 +143,7 @@
     <ClInclude Include="memutils.h" />
     <ClInclude Include="ntdll.h" />
     <ClInclude Include="pointers.hpp" />
-    <ClInclude Include="processmanager.h" />
+    <ClInclude Include="processmanager.hpp" />
     <ClInclude Include="strutils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

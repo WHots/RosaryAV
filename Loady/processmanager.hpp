@@ -1,6 +1,8 @@
 #pragma once
 #include <windows.h>
 #include "procutils.h"
+#include <optional>
+
 
 
 
@@ -26,14 +28,21 @@ const wchar_t* privileges[] = {
 
 class ProcessManager
 {
-    private:
-        DWORD pid;
-        HANDLE hProcess;
-        float threatLevel;
+    
+    DWORD pid;
+    HANDLE hProcess;
+    float threatLevel;
+    bool finishedAnal;
 
-        //  ProcessGenericInfo ProcessBaseInformation(HANDLE hProcess, const wchar_t* section);
+    ProcessManager(DWORD procId);
+        
 
     public:
-        ProcessManager(DWORD procId);
+
+        /// <summary>
+        /// Destruco
+        /// </summary>
         ~ProcessManager();
+
+        static std::optional<ProcessManager> Create(DWORD procId);       
 };

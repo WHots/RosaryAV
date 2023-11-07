@@ -1,11 +1,11 @@
-#include "processmanager.h"
+#include "processmanager.hpp"
 
 
 
 
 
 
-ProcessManager::ProcessManager(DWORD procId) : pid(procId)
+ProcessManager::ProcessManager(DWORD procId) : pid(procId), threatLevel(0.0f), finishedAnal(false)
 {
 
     hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
@@ -41,8 +41,9 @@ ProcessManager::ProcessManager(DWORD procId) : pid(procId)
 
     //  Max score up to this point = 33f.
 
-
     std::vector<std::pair<std::wstring, int>> handleTypeCounts;
+
+    //  Refer to ntdll.h for handle types.
     handleTypeCounts.emplace_back(std::make_pair(L"Process", GetHandleCount(pid, 0)));
     handleTypeCounts.emplace_back(std::make_pair(L"Device", GetHandleCount(pid, 3)));
     handleTypeCounts.emplace_back(std::make_pair(L"RegistryKey", GetHandleCount(pid, 17)));
@@ -59,7 +60,19 @@ ProcessManager::ProcessManager(DWORD procId) : pid(procId)
             threatLevel += (handleTypeCount.second >= 3) ? handleTypeCount.second : 0.0f;
     }
 
-    //  -------------
+    finishedAnal = true;
+    threatLevel = (threatLevel > 100.0f) ? 100.0f : threatLevel;
+}
+
+
+std::optional<ProcessManager> ProcessManager::Create(DWORD procId)
+{
+    ProcessManager manager(procId);
+
+    if (!manager.hProcess)
+        return std::nullopt;
+
+    return manager;
 }
 
 
