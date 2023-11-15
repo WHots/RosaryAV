@@ -25,7 +25,7 @@ OALabs [Patreon](https://www.patreon.com/oalabs)
 
 ---
 
-Please note that this README is for the open-source portion of Loady. The proprietary version of this solution will be developed privately.
+Please note that this README is for the open-source portion of RosaryAV. The proprietary version of this solution will be developed privately.
 
 
 If you wanna give me money for whatever reason, here is my [OnlyFans](https://onlyfans.com/u374708150)
