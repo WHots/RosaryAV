@@ -10,7 +10,7 @@ struct CryptoElements
 };
 
 
-constexpr std::array<std::array<CryptoElements, 2>, 2> cryptotypes =
+constexpr std::array<std::array<CryptoElements, 2>, 3> cryptotypes =
 {
     {
         {
@@ -23,6 +23,12 @@ constexpr std::array<std::array<CryptoElements, 2>, 2> cryptotypes =
             {
                 L"CRC32 Table",
                 "\x00\x00\x00\x00\x96\x30\x07\x77\x2C\x61\x0E\xEE\xBA\x51\x09\x99\x19\xC4\x6D\x07"
+            }
+        },
+        {
+            {
+                L"Elf Hash",
+                "\x53\x56\x33\xC9\x8B\xD8\x85\xD2\x76\x23\xC1\xE1\x04\x33\xC0\x8A\x03\x03\xC8\x8B\xC1\x25\x00\x00\x00\xF0\x85\xC0\x74\x07\x8B\xF0\xC1\xEE\x18\x33\xCE\xF7\xD0\x23\xC8\x43\x4A\x75\xDD\x8B\xC1\x5E\x5B\xC3"
             }
         }
     }

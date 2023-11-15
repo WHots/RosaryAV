@@ -1,4 +1,4 @@
-#include "processmanager.hpp"
+#include "processmanager.h"
 
 
 
@@ -10,9 +10,9 @@ ProcessManager::ProcessManager(DWORD procId) : pid(procId), threatLevel(0.0f), f
 
     hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
 
-    if (!hProcess)          
+    if (!hProcess)
         return;
-    
+
 
     ProcessGenericInfo baseInformation = ProcessInfoQueryGeneric(L".text", hProcess);
     threatLevel += baseInformation.sectionFound ? -1.25 : 2.5;
@@ -20,21 +20,21 @@ ProcessManager::ProcessManager(DWORD procId) : pid(procId), threatLevel(0.0f), f
     threatLevel += (GetMainThreadState(pid) == 1) ? 2.5 : -1.25;
 
     HANDLE hToken;
-    if (!OpenProcessToken(hProcess, TOKEN_QUERY, &hToken))        
+    if (!OpenProcessToken(hProcess, TOKEN_QUERY, &hToken))
         return;
-    
 
-    auto adjustThreatLevel = [](int result, float pass, float fail) -> float 
+
+    auto adjustThreatLevel = [](int result, float pass, float fail) -> float
     {
         switch (result)
         {
-            case 0:  return fail;
-            case 1:  return pass;
-            default: return 0.0;
+        case 0:  return fail;
+        case 1:  return pass;
+        default: return 0.0;
         }
     };
 
-    for (const auto& privilege : privileges)   
+    for (const auto& privilege : privileges)
         threatLevel += adjustThreatLevel(IsTokenPresent(hToken, privilege), 2.0, -1.50);
 
     CloseHandle(hToken);

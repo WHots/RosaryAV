@@ -131,6 +131,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="crytposignatures.h" />
+    <ClCompile Include="fileutils.cpp" />
     <ClCompile Include="Loady.cpp" />
     <ClCompile Include="memutils.cpp" />
     <ClCompile Include="processmanager.cpp" />
@@ -140,10 +141,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cheatsignatures.h" />
+    <ClInclude Include="fileutils.h" />
     <ClInclude Include="memutils.h" />
     <ClInclude Include="ntdll.h" />
     <ClInclude Include="pointers.hpp" />
-    <ClInclude Include="processmanager.hpp" />
+    <ClInclude Include="processmanager.h" />
     <ClInclude Include="strutils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

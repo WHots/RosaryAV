@@ -66,6 +66,9 @@
     <ClCompile Include="processmanager.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
+    <ClCompile Include="fileutils.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="strutils.h">
@@ -83,8 +86,11 @@
     <ClInclude Include="cheatsignatures.h">
       <Filter>Header Files\Signatures\Cheats</Filter>
     </ClInclude>
-    <ClInclude Include="processmanager.hpp">
+    <ClInclude Include="processmanager.h">
       <Filter>Header Files\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="fileutils.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

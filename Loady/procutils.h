@@ -34,14 +34,6 @@ struct ProcessGenericInfo
 
 
 
-template <typename T>
-inline T DynamicImport(const wchar_t* module, const char* method)
-{
-    return reinterpret_cast<T>(GetProcAddress(GetModuleHandleW(module), method));
-}
-
-
-
 
 /// <summary>
 /// Get address of a given function inside a specified module.
@@ -103,7 +95,7 @@ int GetMainThreadState(DWORD pid);
 /// <summary>
 /// Queries and retrieves information about a specific memory section from a remote process.
 /// </summary>
-/// <param name="section">The name of the memory section to be queried.</param>
+/// <param name="section">The name of the memory section to be looked up.</param>
 /// <param name="hProcess">Handle to the process.</param>
 /// <returns>A ProcessGenericInfo structure with details about the memory section, or default values in case of error.</returns>
 ProcessGenericInfo ProcessInfoQueryGeneric(const wchar_t* section, HANDLE hProcess);

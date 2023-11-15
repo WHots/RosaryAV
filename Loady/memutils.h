@@ -5,6 +5,17 @@
 
 
 
+
+
+template <typename T>
+inline T DynamicImport(const wchar_t* module, const char* method)
+{
+    return reinterpret_cast<T>(GetProcAddress(GetModuleHandleW(module), method));
+}
+
+
+
+
 /// <summary>
 /// Regular way of filling a memory block with zeros without API call.
 /// </summary>

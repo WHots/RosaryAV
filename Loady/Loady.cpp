@@ -1,6 +1,6 @@
 
 #include <iostream>
-#include "procutils.h"
+#include "fileutils.h"
 
 //#include "memutils.h"
 //#include <winternl.h>
@@ -24,10 +24,15 @@
 int main()
 {    
 
-    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, GetCurrentProcessId());
+    std::string file = GetFileStemName("D:\\Window Internals\\Autoruns\\Autoruns64.exe");
+    std::cout << file <<std::endl;
+    GetFileInternalName(L"D:\\Window Internals\\Autoruns\\Autoruns64.exe");
+
+
+    /*HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, GetCurrentProcessId());
 
     LPTSTR test = GetProcessSid(hProcess);
-    wprintf(L"%s\n", test);
+    wprintf(L"%s\n", test);*/
     
     //PEB* pebBase = PebBaseAddress(hProcess);
 

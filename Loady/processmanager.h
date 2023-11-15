@@ -28,21 +28,32 @@ const wchar_t* privileges[] = {
 
 class ProcessManager
 {
-    
+    /// <summary>
+    /// Target process ID.
+    /// </summary>
     DWORD pid;
+    /// <summary>
+    /// Generic handle to target process.
+    /// </summary>
     HANDLE hProcess;
+    /// <summary>
+    /// Complete target process threat level.
+    /// </summary>
     float threatLevel;
+    /// <summary>
+    /// Indicates if the anal process has ran to completion or not.
+    /// </summary>
     bool finishedAnal;
 
     ProcessManager(DWORD procId);
-        
 
-    public:
 
-        /// <summary>
-        /// Destruco
-        /// </summary>
-        ~ProcessManager();
+public:
 
-        static std::optional<ProcessManager> Create(DWORD procId);       
+    /// <summary>
+    /// Destruco
+    /// </summary>
+    ~ProcessManager();
+
+    static std::optional<ProcessManager> Create(DWORD procId);
 };

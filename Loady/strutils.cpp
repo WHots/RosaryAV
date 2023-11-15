@@ -34,14 +34,39 @@ namespace stringutil
 
     std::wstring UTF8ToWide(const std::string& utf8Str)
     {
-        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-        return converter.from_bytes(utf8Str);
+
+        int bufferSize = MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, nullptr, 0);
+
+        if (bufferSize == 0)         
+            return std::wstring();
+
+        std::wstring wideString(bufferSize, 0);
+
+
+        if (MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, &wideString[0], bufferSize) == 0)
+            return std::wstring();
+
+
+        wideString.pop_back();
+        return wideString;
     }
 
 
-    std::string WideToUTF8(const std::wstring& wideStr)
-    {
-        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-        return converter.to_bytes(wideStr);
+    std::string WideStringToUTF8(const wchar_t* wideString)
+    {       
+
+        int bufferSize = WideCharToMultiByte(CP_UTF8, 0, wideString, -1, nullptr, 0, nullptr, nullptr);
+
+        if (bufferSize == 0)
+            return std::string();    
+
+        std::string multiByteString(bufferSize, 0);
+
+        if (WideCharToMultiByte(CP_UTF8, 0, wideString, -1, &multiByteString[0], bufferSize, nullptr, nullptr) == 0)
+            return std::string();
+
+
+        multiByteString.pop_back();
+        return multiByteString;
     }
 }
