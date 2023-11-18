@@ -15,8 +15,11 @@ struct PLAYER1
 
 int main()
 {    
-   
-  
+
+    std::string file = GetFileStemName("D:\\Window Internals\\Autoruns\\Autoruns64.exe");
+    std::cout << file <<std::endl;
+    GetFileInternalName(L"D:\\Window Internals\\Autoruns\\Autoruns64.exe");
+
 
     /*HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, GetCurrentProcessId());
 
