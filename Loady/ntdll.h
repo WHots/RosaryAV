@@ -58,6 +58,7 @@ typedef struct SYSTEM_HANDLE
 
 } SYSTEM_HANDLE_INFORMATION_, * PSYSTEM_HANDLE_INFORMATION_;
 
+
 typedef struct SYSTEM_HANDLE_INFORMATION
 {
     ULONG HandleCount;
@@ -83,7 +84,6 @@ typedef struct _LDR_MODULE
     ULONG TimeDateStamp;
 
 } LDR_MODULE, * PLDR_MODULE;
-
 
 
 typedef struct _THREAD_BASIC_INFORMATION 

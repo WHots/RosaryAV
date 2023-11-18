@@ -77,7 +77,7 @@
     <ClInclude Include="memutils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pointers.hpp">
+    <ClInclude Include="prototypes.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ntdll.h">
@@ -91,6 +91,9 @@
     </ClInclude>
     <ClInclude Include="fileutils.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="accctrl.h">
+      <Filter>windows</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

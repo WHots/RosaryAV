@@ -23,7 +23,7 @@ inline NTSTATUS NtReadVirtualMemory(HANDLE ProcessHandle, PVOID BaseAddress, PVO
     void* executableMemory = VirtualAlloc(0, sizeof opcodes, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
     memcpy(executableMemory, opcodes, sizeof opcodes);
 
-    pointers::fpNtReadVirtualMemory NtReadVirtualMemory = reinterpret_cast<pointers::fpNtReadVirtualMemory>(executableMemory);
+    prototypes::fpNtReadVirtualMemory NtReadVirtualMemory = reinterpret_cast<prototypes::fpNtReadVirtualMemory>(executableMemory);
 
     return NtReadVirtualMemory(ProcessHandle, BaseAddress, Buffer, NumberOfBytesToRead, NumberOfBytesReaded);
 }

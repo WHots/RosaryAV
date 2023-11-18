@@ -59,7 +59,7 @@ inline PEB* PebBaseAddress(HANDLE hProcess)
     if (hProcess == INVALID_HANDLE_VALUE)
         return nullptr;
 
-    auto ptrNtQueryInformationProcess = DynamicImport<pointers::TNtQueryInformationProcess>(L"ntdll.dll", "NtQueryInformationProcess");
+    auto ptrNtQueryInformationProcess = DynamicImport<prototypes::TNtQueryInformationProcess>(L"ntdll.dll", "NtQueryInformationProcess");
 
     if (!ptrNtQueryInformationProcess)
         return nullptr;
@@ -97,7 +97,7 @@ int GetHandleCount(DWORD pid, int type)
     buffer = (PSYSTEM_HANDLE_INFORMATION)malloc(bufferSize);
     NTSTATUS status;
 
-    auto NtQuerySystemInformation = DynamicImport<pointers::_NtQuerySystemInformation>(L"ntdll.dll", "NtQuerySystemInformation");
+    auto NtQuerySystemInformation = DynamicImport<prototypes::_NtQuerySystemInformation>(L"ntdll.dll", "NtQuerySystemInformation");
     status = NtQuerySystemInformation(0x10, buffer, bufferSize, NULL);
 
     if (!NT_SUCCESS(status))
@@ -127,14 +127,14 @@ LPTSTR GetProcessSid(HANDLE hProcess)
 
     HANDLE hToken = nullptr;
 
-    auto NtOpenProcessToken = DynamicImport<pointers::fpNtOpenProcessToken>(L"ntdll.dll", "NtOpenProcessToken");
+    auto NtOpenProcessToken = DynamicImport<prototypes::fpNtOpenProcessToken>(L"ntdll.dll", "NtOpenProcessToken");
 
     if (!NT_SUCCESS(NtOpenProcessToken(hProcess, TOKEN_QUERY, &hToken)))
         return nullptr;
     
     std::unique_ptr<void, decltype(&CloseHandle)> tokenGuard(hToken, CloseHandle);
 
-    auto NtQueryInformationToken = DynamicImport<pointers::fpNtQueryInformationToken>(L"ntdll.dll", "NtQueryInformationToken");
+    auto NtQueryInformationToken = DynamicImport<prototypes::fpNtQueryInformationToken>(L"ntdll.dll", "NtQueryInformationToken");
 
     DWORD dwSize = 0;
     NtQueryInformationToken(hToken, TokenUser, NULL, 0, &dwSize);
@@ -161,7 +161,7 @@ int IsTokenPresent(HANDLE hToken, const wchar_t* privilegeType)
     int fail = -1;
     NTSTATUS status;
 
-    auto NtPrivilegeCheck = DynamicImport<pointers::fpNtPrivilegeCheck>(L"ntdll.dll", "NtPrivilegeCheck");
+    auto NtPrivilegeCheck = DynamicImport<prototypes::fpNtPrivilegeCheck>(L"ntdll.dll", "NtPrivilegeCheck");
 
     if (!NtPrivilegeCheck)
         return fail;
@@ -225,7 +225,7 @@ inline ModuleInfo MainModuleInfoEx(HANDLE hProcess)
 inline int ThreadStartedSuspended(HANDLE hThread)
 {
 
-    auto NtQueryInformationThread = DynamicImport<pointers::fpNtQueryInformationThread>(L"ntdll.dll", "NtQueryInformationThread");
+    auto NtQueryInformationThread = DynamicImport<prototypes::fpNtQueryInformationThread>(L"ntdll.dll", "NtQueryInformationThread");
 
     if (!NtQueryInformationThread)
         return -1;
@@ -313,7 +313,7 @@ ProcessGenericInfo ProcessInfoQueryGeneric(const wchar_t* section, HANDLE hProce
     sectionInfo.mainModuleAddress = (PVOID)moduleInfo.baseAddress;
     sectionInfo.mainModuleSize = moduleInfo.size;
 
-    pointers::fpNtQueryVirtualMemory pNtQueryVirtualMemory = (pointers::fpNtQueryVirtualMemory)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQueryVirtualMemory");
+    prototypes::fpNtQueryVirtualMemory pNtQueryVirtualMemory = (prototypes::fpNtQueryVirtualMemory)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQueryVirtualMemory");
 
     PVOID BaseAddress = (PVOID)moduleInfo.baseAddress;
 

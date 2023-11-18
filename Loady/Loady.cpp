@@ -1,33 +1,22 @@
-
 #include <iostream>
 #include "fileutils.h"
 
-//#include "memutils.h"
-//#include <winternl.h>
-//#include <windows.h>
-//#include "pointers.hpp"
-//#include <tlhelp32.h>
-//#include <sddl.h>
-//#include "procutils.h"
 
 
 
-//struct ProcessTarget
-//{
-//    ModuleInfo mainModule;
-//    int tokenCount;
-//    bool startedSuspended;
-//    int susHandleCounts;
-//};
+struct PLAYER1
+{
+
+    LPTSTR sid;
+    DWORD pid;
+    //  ...
+};
 
 
 int main()
 {    
-
-    std::string file = GetFileStemName("D:\\Window Internals\\Autoruns\\Autoruns64.exe");
-    std::cout << file <<std::endl;
-    GetFileInternalName(L"D:\\Window Internals\\Autoruns\\Autoruns64.exe");
-
+   
+  
 
     /*HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, GetCurrentProcessId());
 

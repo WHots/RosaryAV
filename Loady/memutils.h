@@ -1,7 +1,7 @@
 #pragma once
 #include <Windows.h>
 #include <Psapi.h>
-#include "pointers.hpp"
+#include "prototypes.hpp"
 
 
 

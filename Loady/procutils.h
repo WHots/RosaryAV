@@ -8,7 +8,7 @@
 #include "strutils.h"
 #include "memutils.h"
 #include "ntdll.h"
-#include "pointers.hpp"
+#include "prototypes.hpp"
 
 
 

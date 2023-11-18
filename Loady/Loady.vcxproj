@@ -140,11 +140,12 @@
     <ClCompile Include="strutils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="accctrl.h" />
     <ClInclude Include="cheatsignatures.h" />
     <ClInclude Include="fileutils.h" />
     <ClInclude Include="memutils.h" />
     <ClInclude Include="ntdll.h" />
-    <ClInclude Include="pointers.hpp" />
+    <ClInclude Include="prototypes.hpp" />
     <ClInclude Include="processmanager.h" />
     <ClInclude Include="strutils.h" />
   </ItemGroup>
