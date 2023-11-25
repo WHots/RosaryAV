@@ -4,6 +4,7 @@
 
 
 
+
 struct PLAYER1
 {
 
@@ -15,11 +16,22 @@ struct PLAYER1
 
 int main()
 {    
+    
 
-    std::string file = GetFileStemName("D:\\Window Internals\\Autoruns\\Autoruns64.exe");
+    LPTSTR ownerSid = fileutils::GetFileOwnerSid(L"D:\\Window Internals\\Autoruns\\Autoruns64.exe");
+
+    if (ownerSid) {
+        std::wcout << L"Owner SID for file " << L": " << ownerSid << std::endl;
+        LocalFree(ownerSid); // Free the memory allocated for the SID string
+    }
+    else {
+        std::wcerr << L"Failed to retrieve the file owner's SID." << std::endl;
+    }
+
+   /* std::string file = GetFileStemName("D:\\Window Internals\\Autoruns\\Autoruns64.exe");
     std::cout << file <<std::endl;
     GetFileInternalName(L"D:\\Window Internals\\Autoruns\\Autoruns64.exe");
-
+*/
 
     /*HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, GetCurrentProcessId());
 

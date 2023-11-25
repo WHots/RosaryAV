@@ -15,7 +15,7 @@ namespace stringutil
     }
 
 
-    wchar_t* CharToWChar_T(char* str)
+    wchar_t* CStringToWide(char* str)
     {
         int length = StringLengthA(str);
         if (str == nullptr) {
