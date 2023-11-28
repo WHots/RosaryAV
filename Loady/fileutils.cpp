@@ -117,9 +117,9 @@ namespace fileutils
     LPTSTR GetFileOwnerSid(const wchar_t* filePath)
     {
 
-        using namespace memoryutils;
+        ImportUtils utils(GetModuleHandleW(L"advapi32.dll"));
 
-        auto GetNamedSecurityInfoW = DynamicImporter<prototypes::fpGetNamedSecurityInfoW>(L"advapi32.dll", "GetNamedSecurityInfoW");
+        auto GetNamedSecurityInfoW = utils.DynamicImporter<prototypes::fpGetNamedSecurityInfoW>("GetNamedSecurityInfoW", 2);
 
         if (!GetNamedSecurityInfoW)
             return nullptr;
@@ -140,14 +140,15 @@ namespace fileutils
 
 
         LPTSTR sidString = nullptr;
-
-        auto ConvertSidToStringSidW = DynamicImporter<prototypes::fpConvertSidToStringSidW>(L"advapi32.dll", "ConvertSidToStringSidW");
+       
+        auto ConvertSidToStringSidW = utils.DynamicImporter<prototypes::fpConvertSidToStringSidW>("ConvertSidToStringSidW");
 
         if (!ConvertSidToStringSidW || !ConvertSidToStringSidW(ownerSID, &sidString))
             return nullptr;
 
         std::unique_ptr<TCHAR, decltype(&LocalFree)> sidGuard(sidString, LocalFree);
 
+        utils.~ImportUtils();
         return _tcsdup(sidString);
     }
 

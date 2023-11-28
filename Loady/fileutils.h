@@ -12,7 +12,7 @@
 #include <cryptopp/files.h>
 
 #include "strutils.h"
-#include "memutils.h"
+#include "importmanager.h"
 
 #pragma comment(lib, "Version.lib")
 

@@ -12,10 +12,14 @@ namespace processutils
         if (hProcess == INVALID_HANDLE_VALUE)
             return nullptr;
 
-        auto ptrNtQueryInformationProcess = memoryutils::DynamicImporter<prototypes::TNtQueryInformationProcess>(L"ntdll.dll", "NtQueryInformationProcess");
+        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
+
+        auto ptrNtQueryInformationProcess = utils.DynamicImporter<prototypes::TNtQueryInformationProcess>("NtQueryInformationProcess");
 
         if (!ptrNtQueryInformationProcess)
             return nullptr;
+
+        utils.~ImportUtils();
 
         PROCESS_BASIC_INFORMATION pbi{};
 
@@ -50,8 +54,11 @@ namespace processutils
         buffer = (PSYSTEM_HANDLE_INFORMATION)malloc(bufferSize);
         NTSTATUS status;
 
-        auto NtQuerySystemInformation = memoryutils::DynamicImporter<prototypes::_NtQuerySystemInformation>(L"ntdll.dll", "NtQuerySystemInformation");
+        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
+
+        auto NtQuerySystemInformation = utils.DynamicImporter<prototypes::_NtQuerySystemInformation>("NtQuerySystemInformation");
         status = NtQuerySystemInformation(0x10, buffer, bufferSize, NULL);
+        utils.~ImportUtils();
 
         if (!NT_SUCCESS(status))
         {
@@ -78,18 +85,21 @@ namespace processutils
     {
 
         HANDLE hToken = nullptr;
+        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
 
-        auto NtOpenProcessToken = memoryutils::DynamicImporter<prototypes::fpNtOpenProcessToken>(L"ntdll.dll", "NtOpenProcessToken");
+        auto NtOpenProcessToken = utils.DynamicImporter<prototypes::fpNtOpenProcessToken>("NtOpenProcessToken");
 
         if (!NT_SUCCESS(NtOpenProcessToken(hProcess, TOKEN_QUERY, &hToken)))
             return nullptr;
 
         std::unique_ptr<void, decltype(&CloseHandle)> tokenGuard(hToken, CloseHandle);
 
-        auto NtQueryInformationToken = memoryutils::DynamicImporter<prototypes::fpNtQueryInformationToken>(L"ntdll.dll", "NtQueryInformationToken");
+        auto NtQueryInformationToken = utils.DynamicImporter<prototypes::fpNtQueryInformationToken>("NtQueryInformationToken");
 
         DWORD dwSize = 0;
         NtQueryInformationToken(hToken, TokenUser, NULL, 0, &dwSize);
+
+        utils.~ImportUtils();
 
         auto buffer = std::make_unique<BYTE[]>(dwSize);
 
@@ -109,14 +119,18 @@ namespace processutils
 
     int IsTokenPresent(HANDLE hToken, const wchar_t* privilegeType)
     {
-
+        
         int fail = -1;
         NTSTATUS status;
 
-        auto NtPrivilegeCheck = memoryutils::DynamicImporter<prototypes::fpNtPrivilegeCheck>(L"ntdll.dll", "NtPrivilegeCheck");
+        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
+
+        auto NtPrivilegeCheck = utils.DynamicImporter<prototypes::fpNtPrivilegeCheck>("NtPrivilegeCheck");
 
         if (!NtPrivilegeCheck)
             return fail;
+
+        utils.~ImportUtils();
 
         LUID luid;
 
@@ -177,14 +191,18 @@ namespace processutils
     inline int ThreadStartedSuspended(HANDLE hThread)
     {
 
-        auto NtQueryInformationThread = memoryutils::DynamicImporter<prototypes::fpNtQueryInformationThread>(L"ntdll.dll", "NtQueryInformationThread");
+        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
+
+        auto NtQueryInformationThread = utils.DynamicImporter<prototypes::fpNtQueryInformationThread>("NtQueryInformationThread");
 
         if (!NtQueryInformationThread)
             return -1;
-
+       
 
         THREAD_BASIC_INFORMATION tbi{};
         NTSTATUS status = NtQueryInformationThread(hThread, (THREADINFOCLASS)0x00, &tbi, sizeof(tbi), nullptr);
+
+        utils.~ImportUtils();
 
         if (!NT_SUCCESS(status))
             return -1;

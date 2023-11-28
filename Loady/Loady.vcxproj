@@ -132,6 +132,7 @@
   <ItemGroup>
     <ClCompile Include="crytposignatures.h" />
     <ClCompile Include="fileutils.cpp" />
+    <ClCompile Include="importmanager.cpp" />
     <ClCompile Include="Loady.cpp" />
     <ClCompile Include="memutils.cpp" />
     <ClCompile Include="processmanager.cpp" />
@@ -143,6 +144,7 @@
     <ClInclude Include="accctrl.h" />
     <ClInclude Include="cheatsignatures.h" />
     <ClInclude Include="fileutils.h" />
+    <ClInclude Include="importmanager.h" />
     <ClInclude Include="memutils.h" />
     <ClInclude Include="ntdll.h" />
     <ClInclude Include="prototypes.hpp" />

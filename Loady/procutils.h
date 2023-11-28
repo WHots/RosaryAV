@@ -6,7 +6,7 @@
 #include <TlHelp32.h>
 
 #include "strutils.h"
-#include "memutils.h"
+#include "importmanager.h"
 #include "ntdll.h"
 #include "prototypes.hpp"
 

@@ -69,6 +69,9 @@
     <ClCompile Include="fileutils.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="importmanager.cpp">
+      <Filter>Managers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="strutils.h">
@@ -94,6 +97,9 @@
     </ClInclude>
     <ClInclude Include="accctrl.h">
       <Filter>windows</Filter>
+    </ClInclude>
+    <ClInclude Include="importmanager.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -10,30 +10,7 @@
 
 namespace memoryutils
 {
-
-    /// <summary>
-    /// Get address of a given function inside a specified module.
-    /// </summary>
-    /// <param name="moduleHandle">Module handle to search.</param>
-    /// <param name="method">Method name to find.</param>
-    /// <returns>Function address, otherwise nullptr.</returns>
-    FARPROC GetProcedureAddressA(HMODULE moduleHandle, const char* method);
-    /// <summary>
-    /// Dynamically imports a function from a specified module, providing the option to use either the standard GetProcAddress or a custom method for address retrieval.
-    /// </summary>
-    /// <typeparam name="T">The function pointer type to which the imported function will be cast.</typeparam>
-    /// <param name="module">The name of the module from which to import the function.</param>
-    /// <param name="method">The name of the function to import.</param>
-    /// <param name="apiLocation">Specifies the method of address retrieval: 1 for GetProcAddress, 0 for custom address retrieval (using GetProcedureAddressA). Defaults to 1.</param>
-    /// <returns>A function pointer of type T to the imported function, or nullptr if the function cannot be imported.</returns>   
-    template <typename T>
-    T DynamicImporter(const wchar_t* module, const char* method, int apiLocation = 1)
-    {
-        if (apiLocation == 1)
-            return reinterpret_cast<T>(GetProcAddress(GetModuleHandleW(module), method));
-        else if (apiLocation == 0)
-            return reinterpret_cast<T>(memoryutils::GetProcedureAddressA(GetModuleHandleW(module), method));
-    }
+   
     /// <summary>
     /// Regular way of filling a memory block with zeros without API call.
     /// </summary>

@@ -6,49 +6,9 @@
 
 namespace memoryutils
 {
-
-    FARPROC GetProcedureAddressA(HMODULE moduleHandle, const char* method)
-    {
-
-        if (!moduleHandle || !method)
-            return nullptr;
-
-
-        PIMAGE_DOS_HEADER dosHeader = (PIMAGE_DOS_HEADER)moduleHandle;
-        PIMAGE_NT_HEADERS ntHeaders = (PIMAGE_NT_HEADERS)((DWORD_PTR)moduleHandle + dosHeader->e_lfanew);
-        PIMAGE_IMPORT_DESCRIPTOR importDescriptor = (PIMAGE_IMPORT_DESCRIPTOR)((DWORD_PTR)moduleHandle + ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
-
-        if (importDescriptor != NULL)
-        {
-            while (importDescriptor->Name != 0)
-            {
-                PIMAGE_THUNK_DATA thunk = (PIMAGE_THUNK_DATA)((DWORD_PTR)moduleHandle + importDescriptor->OriginalFirstThunk);
-
-                while (thunk && thunk->u1.Function)
-                {
-                    if (!(thunk->u1.Ordinal & IMAGE_ORDINAL_FLAG))
-                    {
-                        PIMAGE_IMPORT_BY_NAME importByName = (PIMAGE_IMPORT_BY_NAME)((DWORD_PTR)moduleHandle + thunk->u1.AddressOfData);
-
-                        if (strcmp(method, (char*)importByName->Name) == 0)
-                        {
-                            DWORD_PTR functionRVA = ntHeaders->OptionalHeader.ImageBase + (DWORD_PTR)thunk->u1.Function;
-                            return (FARPROC)functionRVA;
-                        }
-                    }
-                    thunk++;
-                }
-                importDescriptor++;
-            }
-        }
-
-        return nullptr;
-    }
-
-
+   
     inline void SecureZero(void* data, size_t size)
     {
-
         volatile char* p = static_cast<volatile char*>(data);
 
         while (size--)
