@@ -1,5 +1,5 @@
 #pragma once
-#include <windows.h>
+#include <Windows.h>
 #include <optional>
 
 #include "procutils.h"
@@ -7,7 +7,8 @@
 
 
 
-const wchar_t* privileges[] = {
+const wchar_t* privileges[] = 
+{
 
     SE_CREATE_TOKEN_NAME,
     SE_ASSIGNPRIMARYTOKEN_NAME,

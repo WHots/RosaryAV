@@ -14,7 +14,7 @@ namespace processutils
 
         ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
 
-        auto ptrNtQueryInformationProcess = utils.DynamicImporter<prototypes::TNtQueryInformationProcess>("NtQueryInformationProcess");
+        auto ptrNtQueryInformationProcess = utils.DynamicImporter<prototypes::fpNtQueryInformationProcess>("NtQueryInformationProcess");
 
         if (!ptrNtQueryInformationProcess)
             return nullptr;
@@ -56,7 +56,7 @@ namespace processutils
 
         ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
 
-        auto NtQuerySystemInformation = utils.DynamicImporter<prototypes::_NtQuerySystemInformation>("NtQuerySystemInformation");
+        auto NtQuerySystemInformation = utils.DynamicImporter<prototypes::fpNtQuerySystemInformation>("NtQuerySystemInformation");
         status = NtQuerySystemInformation(0x10, buffer, bufferSize, NULL);
         utils.~ImportUtils();
 
@@ -184,6 +184,7 @@ namespace processutils
                 }
             }
         }
+
         return mainModuleInfo;
     }
 
@@ -270,6 +271,42 @@ namespace processutils
     }
 
 
+    int GetHiddenThreadCount(DWORD pid)
+    {
+        
+        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
+        auto NtQueryInformationThread = utils.DynamicImporter<prototypes::fpNtQueryInformationThread>("NtQueryInformationThread");
+        utils.~ImportUtils();
+
+        THREADENTRY32 te32{};
+        int hiddenThreadCount = 0;
+
+        HANDLE hThreadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, pid);
+
+        if (Thread32First(hThreadSnapshot, &te32))
+        {
+            do
+            {
+                ULONG threadHidden = 0;
+                HANDLE hThread = OpenThread(THREAD_QUERY_INFORMATION, FALSE, te32.th32ThreadID);
+
+                if (hThread)
+                {
+                    NTSTATUS status = NtQueryInformationThread(hThread, (THREADINFOCLASS)17, &threadHidden, sizeof(threadHidden), nullptr);
+
+                    if (NT_SUCCESS(status) && threadHidden)                   
+                        hiddenThreadCount++;  
+
+                    CloseHandle(hThread);
+                }
+            } while (Thread32Next(hThreadSnapshot, &te32));
+        }
+
+        CloseHandle(hThreadSnapshot);
+        return hiddenThreadCount;
+    }
+
+
     ProcessGenericInfo ProcessInfoQueryGeneric(const wchar_t* section, HANDLE hProcess)
     {
 
@@ -283,14 +320,16 @@ namespace processutils
         sectionInfo.mainModuleAddress = (PVOID)moduleInfo.baseAddress;
         sectionInfo.mainModuleSize = moduleInfo.size;
 
-        prototypes::fpNtQueryVirtualMemory pNtQueryVirtualMemory = (prototypes::fpNtQueryVirtualMemory)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQueryVirtualMemory");
+        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
+        auto NtQueryVirtualMemory = utils.DynamicImporter<prototypes::fpNtQueryVirtualMemory>("NtQueryVirtualMemory");
+        
 
         PVOID BaseAddress = (PVOID)moduleInfo.baseAddress;
 
         MEMORY_BASIC_INFORMATION mbi{};
         SIZE_T returnLength;
 
-        NTSTATUS status = pNtQueryVirtualMemory(hProcess, BaseAddress, MemoryBasicInformation, &mbi, sizeof(mbi), &returnLength);
+        NTSTATUS status = NtQueryVirtualMemory(hProcess, BaseAddress, MemoryBasicInformation, &mbi, sizeof(mbi), &returnLength);
 
         if (NT_SUCCESS(status))
         {
@@ -310,6 +349,7 @@ namespace processutils
             }
         }
 
+        utils.~ImportUtils();
         return sectionInfo;
     }
 

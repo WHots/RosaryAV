@@ -119,7 +119,7 @@ namespace fileutils
 
         ImportUtils utils(GetModuleHandleW(L"advapi32.dll"));
 
-        auto GetNamedSecurityInfoW = utils.DynamicImporter<prototypes::fpGetNamedSecurityInfoW>("GetNamedSecurityInfoW", 2);
+        auto GetNamedSecurityInfoW = utils.DynamicImporter<prototypes::fpGetNamedSecurityInfoW>("GetNamedSecurityInfoW");
 
         if (!GetNamedSecurityInfoW)
             return nullptr;
@@ -171,21 +171,21 @@ namespace fileutils
             totalBytes += file.gcount();
 
             std::for_each(buffer.begin(), buffer.begin() + file.gcount(), [&frequency](char c)
-                {
-                    ++frequency[static_cast<unsigned char>(c)];
-                });
+            {
+                ++frequency[static_cast<unsigned char>(c)];
+            });
         }
 
         double entropy = 0.0;
 
         std::for_each(frequency.begin(), frequency.end(), [&entropy, totalBytes](long freq)
+        {
+            if (freq > 0)
             {
-                if (freq > 0)
-                {
-                    double probability = static_cast<double>(freq) / totalBytes;
-                    entropy -= probability * std::log2(probability);
-                }
-            });
+                double probability = static_cast<double>(freq) / totalBytes;
+                entropy -= probability * std::log2(probability);
+            }
+        });
 
         return entropy;
     }

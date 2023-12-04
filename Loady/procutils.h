@@ -88,11 +88,17 @@ namespace processutils
     /// <returns>State of the main thread, with 1 indicating suspended, 0 if not, and -1 in case of an error.</returns>
     int GetMainThreadState(DWORD pid);
     /// <summary>
+    /// Retrieves the count of hidden threads within a specified process.
+    /// </summary>
+    /// <param name="pid">The process ID for which hidden threads are to be counted.</param>
+    /// <returns>The number of hidden threads within the specified process.</returns>
+    int GetHiddenThreadCount(DWORD pid);
+    /// <summary>
     /// Queries and retrieves information about a specific memory section from a remote process.
     /// </summary>
     /// <param name="section">The name of the memory section to be looked up.</param>
     /// <param name="hProcess">Handle to the process.</param>
-    /// <returns>A ProcessGenericInfo structure with details about the memory section, or default values in case of error.</returns>
+    /// <returns>A ProcessGenericInfo structure with details about the memory section, or default values in case of error.</returns> 
     ProcessGenericInfo ProcessInfoQueryGeneric(const wchar_t* section, HANDLE hProcess);
 
 }

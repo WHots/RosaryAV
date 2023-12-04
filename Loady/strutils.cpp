@@ -18,16 +18,17 @@ namespace stringutil
     wchar_t* CStringToWide(char* str)
     {
         int length = StringLengthA(str);
-        if (str == nullptr) {
-            return nullptr;
-        }
 
+        if (str == nullptr) 
+            return nullptr;
+        
         wchar_t* wstr_t = (wchar_t*)malloc(sizeof(wchar_t) * (length + 1));
 
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < length; i++) 
             wstr_t[i] = str[i];
-        }
+        
         wstr_t[length] = L'\0';
+
         return wstr_t;
     }
 

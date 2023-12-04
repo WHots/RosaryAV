@@ -1,6 +1,7 @@
 #pragma once
 #include <Windows.h>
 #include <Psapi.h>
+#include <vector>
 #include "prototypes.hpp"
 
 
@@ -9,14 +10,7 @@
 
 
 namespace memoryutils
-{
-   
-    /// <summary>
-    /// Regular way of filling a memory block with zeros without API call.
-    /// </summary>
-    /// <param name="data">pointer to block of data.</param>
-    /// <param name="size">size of data to be zero'd.</param>
-    inline void SecureZero(void* data, size_t size);
+{   
     /// <summary>
     /// Reads process memory via NtReadVirtualMemory for a specific byte string / pattern.
     /// </summary>

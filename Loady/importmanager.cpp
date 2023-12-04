@@ -9,7 +9,7 @@
 ImportUtils::ImportUtils(HMODULE moduleHandle) : hModule(moduleHandle) 
 {
     if (!hModule)
-        throw std::invalid_argument("Invalid module handle");
+        throw std::invalid_argument("");
 }
 
 
@@ -52,12 +52,10 @@ FARPROC ImportUtils::GetProcedureAddressA(HMODULE moduleHandle, const char* meth
 }
 
 
-PVOID __stdcall ImportUtils::ImageDirectoryEntryToDataInternal(PVOID Base, BOOLEAN MappedAsImage, ULONG* Size, DWORD SizeOfHeaders, IMAGE_DATA_DIRECTORY* DataDirectory, IMAGE_FILE_HEADER* ImageFileHeader, void* ImageOptionalHeader) const
+inline PVOID __stdcall ImportUtils::ImageDirectoryEntryToDataInternal(PVOID Base, BOOLEAN MappedAsImage, ULONG* Size, DWORD SizeOfHeaders, IMAGE_DATA_DIRECTORY* DataDirectory, IMAGE_FILE_HEADER* ImageFileHeader, void* ImageOptionalHeader) const
 {
-
-    if (Base == nullptr || Size == nullptr || DataDirectory == nullptr || ImageFileHeader == nullptr || ImageOptionalHeader == nullptr)
+    if (!Base || !Size || !DataDirectory || !ImageFileHeader || !ImageOptionalHeader)
         return nullptr;
-
 
     *Size = 0;
 
@@ -66,28 +64,34 @@ PVOID __stdcall ImportUtils::ImageDirectoryEntryToDataInternal(PVOID Base, BOOLE
 
     *Size = DataDirectory->Size;
 
-    if (MappedAsImage || DataDirectory->VirtualAddress < SizeOfHeaders) 
-        return (char*)Base + DataDirectory->VirtualAddress;
+    if (MappedAsImage || DataDirectory->VirtualAddress < SizeOfHeaders)
+        return static_cast<char*>(Base) + DataDirectory->VirtualAddress;
 
     const WORD SizeOfOptionalHeader = ImageFileHeader->SizeOfOptionalHeader;
     const WORD NumberOfSections = ImageFileHeader->NumberOfSections;
 
-    if (NumberOfSections == 0 || SizeOfOptionalHeader == 0) 
+    if (NumberOfSections == 0 || SizeOfOptionalHeader == 0)
         return nullptr;
-    
 
-    const IMAGE_SECTION_HEADER* pSectionHeaders = reinterpret_cast<const IMAGE_SECTION_HEADER*>(reinterpret_cast<const BYTE*>(ImageOptionalHeader) + SizeOfOptionalHeader);
+    const IMAGE_SECTION_HEADER* pSectionHeaders = reinterpret_cast<const IMAGE_SECTION_HEADER*>(static_cast<const BYTE*>(ImageOptionalHeader) + SizeOfOptionalHeader);
+    const DWORD virtualAddress = DataDirectory->VirtualAddress;
 
-    for (DWORD i = 0; i < NumberOfSections; ++i) 
+    for (DWORD i = 0; i < NumberOfSections; ++i)
     {
         const IMAGE_SECTION_HEADER* pSectionHeader = &pSectionHeaders[i];
+        const DWORD sectionVirtualAddress = pSectionHeader->VirtualAddress;
+        const DWORD sectionSizeOfRawData = pSectionHeader->SizeOfRawData;
 
-        if (DataDirectory->VirtualAddress >= pSectionHeader->VirtualAddress && DataDirectory->VirtualAddress < pSectionHeader->VirtualAddress + pSectionHeader->SizeOfRawData) 
-            return (char*)Base + (DataDirectory->VirtualAddress - pSectionHeader->VirtualAddress) + pSectionHeader->PointerToRawData;      
+        if (virtualAddress >= sectionVirtualAddress && virtualAddress < sectionVirtualAddress + sectionSizeOfRawData)
+        {
+            const DWORD offset = virtualAddress - sectionVirtualAddress;
+            return static_cast<char*>(Base) + offset + pSectionHeader->PointerToRawData;
+        }
     }
 
     return nullptr;
 }
+
 
 
 PVOID __stdcall ImportUtils::ImageDirectoryEntryToData32(PVOID Base, BOOLEAN MappedAsImage, USHORT DirectoryEntry, ULONG* Size, IMAGE_FILE_HEADER* ImageFileHeader, IMAGE_OPTIONAL_HEADER32* ImageOptionalHeader) const
@@ -104,7 +108,7 @@ PVOID __stdcall ImportUtils::ImageDirectoryEntryToData32(PVOID Base, BOOLEAN Map
 }
 
 
-PVOID __stdcall ImportUtils::ImageDirectoryEntryToData64(PVOID Base, BOOLEAN MappedAsImage, USHORT DirectoryEntry, ULONG* Size, IMAGE_FILE_HEADER* ImageFileHeader, IMAGE_OPTIONAL_HEADER64* ImageOptionalHeader) const
+inline PVOID __stdcall ImportUtils::ImageDirectoryEntryToData64(PVOID Base, BOOLEAN MappedAsImage, USHORT DirectoryEntry, ULONG* Size, IMAGE_FILE_HEADER* ImageFileHeader, IMAGE_OPTIONAL_HEADER64* ImageOptionalHeader) const
 {
 
     *Size = 0;
@@ -118,7 +122,7 @@ PVOID __stdcall ImportUtils::ImageDirectoryEntryToData64(PVOID Base, BOOLEAN Map
 }
 
 
-PVOID __stdcall ImportUtils::ImageDirectoryEntryToDataRom(PVOID Base, WORD HeaderMagic, USHORT DirectoryEntry, ULONG* Size, IMAGE_FILE_HEADER* ImageFileHeader, IMAGE_ROM_OPTIONAL_HEADER* ImageRomHeaders) const
+inline PVOID __stdcall ImportUtils::ImageDirectoryEntryToDataRom(PVOID Base, WORD HeaderMagic, USHORT DirectoryEntry, ULONG* Size, IMAGE_FILE_HEADER* ImageFileHeader, IMAGE_ROM_OPTIONAL_HEADER* ImageRomHeaders) const
 {
 
     *Size = 0;
@@ -130,30 +134,33 @@ PVOID __stdcall ImportUtils::ImageDirectoryEntryToDataRom(PVOID Base, WORD Heade
 
     WORD j = 0;
 
-    for (; j < ImageFileHeader->NumberOfSections; ++j, ++pSectionHeader) 
+    for (; j < ImageFileHeader->NumberOfSections; ++j, ++pSectionHeader)
     {
-        if (DirectoryEntry == 3 && _stricmp(reinterpret_cast<const char*>(pSectionHeader->Name), ".pdata") == 0)
+        const char* sectionName = reinterpret_cast<const char*>(pSectionHeader->Name);
+
+        if (DirectoryEntry == 3 && _stricmp(sectionName, ".pdata") == 0)
             break;
 
-        if (DirectoryEntry == 6 && _stricmp(reinterpret_cast<const char*>(pSectionHeader->Name), ".rdata") == 0) 
+        if (DirectoryEntry == 6 && _stricmp(sectionName, ".rdata") == 0)
         {
             *Size = 0;
 
-            for (const BYTE* i = reinterpret_cast<const BYTE*>(Base) + pSectionHeader->PointerToRawData + 0xC; *reinterpret_cast<const DWORD*>(i); i += 0x1C)
+            for (const BYTE* i = static_cast<const BYTE*>(Base) + pSectionHeader->PointerToRawData + 0xC; *reinterpret_cast<const DWORD*>(i); i += 0x1C)
                 *Size += 0x1C;
-            
+
             break;
         }
     }
 
-    if (j >= ImageFileHeader->NumberOfSections) 
+    if (j >= ImageFileHeader->NumberOfSections)
         return nullptr;
 
-    return (char*)Base + pSectionHeader->PointerToRawData;
+    return static_cast<char*>(Base) + pSectionHeader->PointerToRawData;
 }
 
 
-PVOID __stdcall ImportUtils::ImageDirectoryEntryToDataEx(PVOID Base, BOOLEAN MappedAsImage, USHORT DirectoryEntry, ULONG* Size) const
+
+inline PVOID __stdcall ImportUtils::ImageDirectoryEntryToDataEx(PVOID Base, BOOLEAN MappedAsImage, USHORT DirectoryEntry, ULONG* Size) const
 {
 
     if (Size == nullptr || Base == nullptr)
@@ -189,7 +196,7 @@ PVOID __stdcall ImportUtils::ImageDirectoryEntryToDataEx(PVOID Base, BOOLEAN Map
 
 
 
-IMAGE_SECTION_HEADER* __stdcall ImportUtils::ImageRvaToSection(PIMAGE_NT_HEADERS NtHeaders, PVOID Base, ULONG Rva) const
+inline IMAGE_SECTION_HEADER* __stdcall ImportUtils::ImageRvaToSection(PIMAGE_NT_HEADERS NtHeaders, PVOID Base, ULONG Rva) const
 {
 
     if (NtHeaders == nullptr)
