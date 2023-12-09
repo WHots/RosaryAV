@@ -3,7 +3,7 @@
 #include <iostream>
 #include <sddl.h>
 #include <tchar.h>
-#include <TlHelp32.h>
+#include <TlHelp32.h> 
 
 #include "strutils.h"
 #include "importmanager.h"
@@ -18,7 +18,7 @@
 
 struct ModuleInfo 
 {
-    DWORD baseAddress;
+    PVOID baseAddress;
     DWORD size;
 };
 
@@ -93,6 +93,15 @@ namespace processutils
     /// <param name="pid">The process ID for which hidden threads are to be counted.</param>
     /// <returns>The number of hidden threads within the specified process.</returns>
     int GetHiddenThreadCount(DWORD pid);
+    /// <summary>
+    /// Retrieves the count of write operations performed by a specified process.
+    /// </summary>
+    /// <param name="hProcess">A handle to the target process.</param>
+    /// <returns>
+    /// The number of write operations performed by the specified process.
+    /// If the operation is successful, the count is returned; otherwise, -1 is returned.
+    /// </returns>
+    int GetIoCounts(HANDLE hProcess);
     /// <summary>
     /// Queries and retrieves information about a specific memory section from a remote process.
     /// </summary>

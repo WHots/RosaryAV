@@ -156,17 +156,15 @@ namespace processutils
 
     inline ModuleInfo MainModuleInfoEx(HANDLE hProcess)
     {
-
         ModuleInfo mainModuleInfo{};
 
         if (!hProcess)
             return mainModuleInfo;
 
-
-        HMODULE modules[1];
+        HMODULE modules[1024];
         DWORD bytesNeeded;
 
-        if (EnumProcessModules(hProcess, modules, sizeof(modules), &bytesNeeded))
+        if (K32EnumProcessModules(hProcess, modules, sizeof(modules), &bytesNeeded))
         {
             TCHAR moduleName[MAX_PATH];
 
@@ -174,11 +172,10 @@ namespace processutils
             {
                 if (_tcsstr(moduleName, TEXT(".exe")))
                 {
-                    MODULEINFO moduleInfo;
-
+                    MODULEINFO moduleInfo{};
                     if (GetModuleInformation(hProcess, modules[0], &moduleInfo, sizeof(moduleInfo)))
                     {
-                        mainModuleInfo.baseAddress = (DWORD)moduleInfo.lpBaseOfDll;
+                        mainModuleInfo.baseAddress = moduleInfo.lpBaseOfDll;
                         mainModuleInfo.size = moduleInfo.SizeOfImage;
                     }
                 }
@@ -189,11 +186,12 @@ namespace processutils
     }
 
 
+
+
     inline int ThreadStartedSuspended(HANDLE hThread)
     {
 
         ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
-
         auto NtQueryInformationThread = utils.DynamicImporter<prototypes::fpNtQueryInformationThread>("NtQueryInformationThread");
 
         if (!NtQueryInformationThread)
@@ -202,8 +200,6 @@ namespace processutils
 
         THREAD_BASIC_INFORMATION tbi{};
         NTSTATUS status = NtQueryInformationThread(hThread, (THREADINFOCLASS)0x00, &tbi, sizeof(tbi), nullptr);
-
-        utils.~ImportUtils();
 
         if (!NT_SUCCESS(status))
             return -1;
@@ -217,7 +213,7 @@ namespace processutils
 
         HANDLE hMainThread = NULL;
         FILETIME earliestCreationTime{};
-        int result = -1;
+        int result = 0;
 
         HANDLE hThreadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, pid);
 
@@ -276,7 +272,6 @@ namespace processutils
         
         ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
         auto NtQueryInformationThread = utils.DynamicImporter<prototypes::fpNtQueryInformationThread>("NtQueryInformationThread");
-        utils.~ImportUtils();
 
         THREADENTRY32 te32{};
         int hiddenThreadCount = 0;
@@ -307,6 +302,19 @@ namespace processutils
     }
 
 
+    int GetIoCounts(HANDLE hProcess)
+    {
+
+        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
+        auto NtQueryInformationProcess = utils.DynamicImporter<prototypes::fpNtQueryInformationProcess>("NtQueryInformationProcess");
+
+        IO_COUNTERS ioCounters{};
+        NTSTATUS status = NtQueryInformationProcess(hProcess, (PROCESSINFOCLASS)2, &ioCounters, sizeof(ioCounters), nullptr);
+
+        return (NT_SUCCESS(status)) ? ioCounters.WriteTransferCount / 1024 / 1024 : -1;
+    }
+
+
     ProcessGenericInfo ProcessInfoQueryGeneric(const wchar_t* section, HANDLE hProcess)
     {
 
@@ -316,41 +324,35 @@ namespace processutils
         if (!hProcess)
             return sectionInfo;
 
+
         ModuleInfo moduleInfo = MainModuleInfoEx(hProcess);
-        sectionInfo.mainModuleAddress = (PVOID)moduleInfo.baseAddress;
+        sectionInfo.mainModuleAddress = moduleInfo.baseAddress;
         sectionInfo.mainModuleSize = moduleInfo.size;
 
         ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
         auto NtQueryVirtualMemory = utils.DynamicImporter<prototypes::fpNtQueryVirtualMemory>("NtQueryVirtualMemory");
-        
-
-        PVOID BaseAddress = (PVOID)moduleInfo.baseAddress;
 
         MEMORY_BASIC_INFORMATION mbi{};
         SIZE_T returnLength;
 
-        NTSTATUS status = NtQueryVirtualMemory(hProcess, BaseAddress, MemoryBasicInformation, &mbi, sizeof(mbi), &returnLength);
+        NTSTATUS status = NtQueryVirtualMemory(hProcess, moduleInfo.baseAddress, MemoryBasicInformation, &mbi, sizeof(mbi), &returnLength);
 
         if (NT_SUCCESS(status))
         {
-            PIMAGE_DOS_HEADER DosHeader = static_cast<PIMAGE_DOS_HEADER>(BaseAddress);
-            PIMAGE_NT_HEADERS NtHeaders = reinterpret_cast<PIMAGE_NT_HEADERS>(reinterpret_cast<BYTE*>(BaseAddress) + DosHeader->e_lfanew);
-            PIMAGE_SECTION_HEADER SectionTable = IMAGE_FIRST_SECTION(NtHeaders);
-
-            for (int i = 0; i < NtHeaders->FileHeader.NumberOfSections; i++)
+            if (mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE))
             {
-                if (wcscmp(stringutil::CStringToWide((char*)SectionTable[i].Name), section) == 0)
+                PIMAGE_DOS_HEADER DosHeader = reinterpret_cast<PIMAGE_DOS_HEADER>(sectionInfo.mainModuleAddress);
+
+                if (DosHeader != nullptr && DosHeader->e_magic == IMAGE_DOS_SIGNATURE)
                 {
-                    sectionInfo.sectionAddress = static_cast<PVOID>(static_cast<BYTE*>(BaseAddress) + SectionTable[i].VirtualAddress);
-                    sectionInfo.sectionSize = SectionTable[i].SizeOfRawData;
+                    PIMAGE_NT_HEADERS NtHeaders = reinterpret_cast<PIMAGE_NT_HEADERS>(reinterpret_cast<BYTE*>(sectionInfo.mainModuleAddress) + DosHeader->e_lfanew);
                     sectionInfo.sectionFound = true;
-                    break;
-                }
-            }
+                }               
+            }          
         }
 
-        utils.~ImportUtils();
         return sectionInfo;
     }
+
 
 }

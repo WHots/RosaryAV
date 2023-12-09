@@ -105,6 +105,20 @@ typedef struct _THREAD_BASIC_INFORMATION
 typedef enum _MEMORY_INFORMATION_CLASS 
 {
     MemoryBasicInformation,
-    ProcessIoCounters = 2
 
 } MEMORY_INFORMATION_CLASS;
+
+
+
+//typedef struct _IO_COUNTERS 
+//{
+//    ULONGLONG ReadOperationCount;
+//    ULONGLONG WriteOperationCount;
+//    ULONGLONG OtherOperationCount;
+//    ULONGLONG ReadTransferCount;
+//    ULONGLONG WriteTransferCount;
+//    ULONGLONG OtherTransferCount;
+//
+//} IO_COUNTERS, * PIO_COUNTERS;
+
+

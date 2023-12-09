@@ -148,7 +148,6 @@ namespace fileutils
 
         std::unique_ptr<TCHAR, decltype(&LocalFree)> sidGuard(sidString, LocalFree);
 
-        utils.~ImportUtils();
         return _tcsdup(sidString);
     }
 

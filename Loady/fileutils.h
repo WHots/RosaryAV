@@ -58,14 +58,6 @@ namespace fileutils
 	/// <returns>A pointer to a null-terminated string representing the SID of the file's owner.
 	/// Returns nullptr if the function fails. The caller is responsible for freeing the
 	/// returned string using the standard C library function free.</returns>
-	/// <remarks>
-	/// This function dynamically imports the GetNamedSecurityInfoW function from advapi32.dll to
-	/// retrieve the owner SID of the specified file. It then converts this SID to a string format
-	/// for easier handling. The function handles memory allocation and freeing internally, but
-	/// the caller is responsible for freeing the returned SID string. If the function fails at
-	/// any step (e.g., dynamic import failure, retrieval failure, conversion failure), it returns
-	/// nullptr. The function uses smart pointers for automatic resource management.
-	/// </remarks>
 	LPTSTR GetFileOwnerSid(const wchar_t* filePath);
 	/// <summary>
 	/// Determines if the file type is unknown based on its version information.

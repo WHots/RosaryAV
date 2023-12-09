@@ -7,29 +7,9 @@
 
 
 
-const wchar_t* privileges[] = 
+class ProcessTally
 {
 
-    SE_CREATE_TOKEN_NAME,
-    SE_ASSIGNPRIMARYTOKEN_NAME,
-    SE_LOCK_MEMORY_NAME,
-    SE_DEBUG_NAME,
-    SE_TCB_NAME,
-    SE_LOAD_DRIVER_NAME,
-    SE_IMPERSONATE_NAME,
-    SE_INCREASE_QUOTA_NAME,
-    SE_SHUTDOWN_NAME,
-    SE_TAKE_OWNERSHIP_NAME,
-    SE_CREATE_PERMANENT_NAME,
-    SE_CHANGE_NOTIFY_NAME,
-    SE_ENABLE_DELEGATION_NAME,
-    SE_MANAGE_VOLUME_NAME
-};
-
-
-
-class ProcessManager
-{
     /// <summary>
     /// Target process ID.
     /// </summary>
@@ -47,15 +27,43 @@ class ProcessManager
     /// </summary>
     bool finishedAnal;
 
-    ProcessManager(DWORD procId);
+    std::vector<const wchar_t*> processPrivilegeTokens = 
+    {
+        SE_CREATE_TOKEN_NAME,
+        SE_ASSIGNPRIMARYTOKEN_NAME,
+        SE_LOCK_MEMORY_NAME,
+        SE_DEBUG_NAME,
+        SE_TCB_NAME,
+        SE_LOAD_DRIVER_NAME,
+        SE_IMPERSONATE_NAME,
+        SE_INCREASE_QUOTA_NAME,
+        SE_SHUTDOWN_NAME,
+        SE_TAKE_OWNERSHIP_NAME,
+        SE_CREATE_PERMANENT_NAME,
+        SE_CHANGE_NOTIFY_NAME,
+        SE_ENABLE_DELEGATION_NAME,
+        SE_MANAGE_VOLUME_NAME
+    };
+
+
+
+    ProcessTally(DWORD procId);
 
 
 public:
 
-    /// <summary>
-    /// Destruco
-    /// </summary>
-    ~ProcessManager();
 
-    static std::optional<ProcessManager> Create(DWORD procId);
+    float GetThreatLevel() const 
+    {
+        return threatLevel;
+    }
+
+    bool IsAnalysisFinished() const 
+    {
+        return finishedAnal;
+    }
+
+    ~ProcessTally();
+
+    static std::optional<ProcessTally> Create(DWORD procId);
 };
