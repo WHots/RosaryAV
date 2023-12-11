@@ -14,9 +14,6 @@ ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0f), finis
         return;
     
 
-    /*ProcessGenericInfo baseInformation = processutils::ProcessInfoQueryGeneric(L".text", hProcess);
-    threatLevel += baseInformation.sectionFound ? -1.25 : 2.5;*/
-
     threatLevel += (processutils::MainThreadStartedSuspended(pid) == 1) ? 7.5 : -5.25;
 
     HANDLE hToken{};

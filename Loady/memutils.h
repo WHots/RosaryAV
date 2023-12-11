@@ -2,6 +2,8 @@
 #include <Windows.h>
 #include <Psapi.h>
 #include <vector>
+#include <cstdint>
+#include <memory>
 #include "prototypes.hpp"
 
 
@@ -9,33 +11,47 @@
 
 
 
-namespace memoryutils
-{   
+class MemoryUtils 
+{
+
+    template<typename T>
+    NTSTATUS ReadVirtualMemory(HANDLE processHandle, PVOID baseAddress, T* buffer, size_t size, size_t* bytesRead) const 
+    {
+        return NtReadVirtualMemory(processHandle, baseAddress, buffer, size, bytesRead);
+    }
+
+
     /// <summary>
-    /// Reads process memory via NtReadVirtualMemory for a specific byte string / pattern.
+    /// Scans a process's memory for a specific pattern.
     /// </summary>
-    /// <param name="ProcessHandle">Handle to the target process.</param>
-    /// <param name="BaseAddress">Base address of the memory to read from.</param>
-    /// <param name="Buffer">Pointer to the buffer where the read data will be stored.</param>
-    /// <param name="NumberOfBytesToRead">Number of bytes to read from the target process.</param>
-    /// <param name="NumberOfBytesReaded">Pointer to store the number of bytes actually read.</param>
-    /// <returns>NTSTATUS indicating the result of the memory read operation.</returns>
-    inline NTSTATUS NtReadVirtualMemory(HANDLE ProcessHandle, PVOID BaseAddress, PVOID Buffer, ULONG NumberOfBytesToRead, PULONG NumberOfBytesReaded);
+    /// <param name="pattern">The pattern to search for.</param>
+    /// <param name="begin">The starting address of the memory region to scan.</param>
+    /// <param name="size">The size of the memory region to scan in bytes.</param>
+    /// <param name="processHandle">A handle to the process to scan.</param>
+    /// <returns>The address of the first occurrence of the pattern, or nullptr if not found.</returns>
+    char* ScanEx(const char* pattern, char* begin, size_t size, HANDLE processHandle) const;
+    
+
+private:
+
+
     /// <summary>
-    /// Searches for a subsequence in a given memory block.
+    /// Performs a memory search for a needle within a haystack.
     /// </summary>
-    /// <param name="haystack">Pointer to the memory block to search in.</param>
-    /// <param name="haystack_len">Length of the memory block.</param>
-    /// <param name="needle">Pointer to the subsequence to search for.</param>
-    /// <param name="needle_len">Length of the subsequence to search for.</param>
-    /// <returns>A pointer to the first occurrence of the subsequence if found, otherwise nullptr.</returns>
+    /// <param name="haystack">The memory region to search within.</param>
+    /// <param name="haystack_len">The length of the haystack in bytes.</param>
+    /// <param name="needle">The pattern to search for.</param>
+    /// <param name="needle_len">The length of the needle in bytes.</param>
+    /// <returns>A pointer to the first occurrence of the needle within the haystack, or nullptr if not found.</returns>
     inline void* memmem(const void* haystack, size_t haystack_len, const void* const needle, const size_t needle_len);
     /// <summary>
-    /// Reads process memory via NtReadVirtualMemory for a specific byte string / pattern.
+    /// Reads data from the virtual memory of a process.
     /// </summary>
-    /// <param name="pied">Target process ID.</param>
-    /// <param name="mod_name">Module name to read.</param>
-    /// <param name="pattern">Pattern, typically an IDA or Ghidra pattern is acceptable.</param>
-    char* ScanEx(const char* pattern, char* begin, intptr_t size, HANDLE hProc);
-
-}
+    /// <param name="processHandle">A handle to the process to read from.</param>
+    /// <param name="baseAddress">The base address of the memory to read.</param>
+    /// <param name="buffer">A buffer to store the read data.</param>
+    /// <param name="size">The size of the data to read in bytes.</param>
+    /// <param name="bytesRead">A pointer to a variable that will receive the number of bytes read.</param>
+    /// <returns>The NTSTATUS result of the read operation.</returns>
+    inline NTSTATUS NtReadVirtualMemory(HANDLE processHandle, PVOID baseAddress, PVOID buffer, size_t size, size_t* bytesRead) const;
+};

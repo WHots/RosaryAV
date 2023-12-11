@@ -78,7 +78,7 @@ private:
     /// <param name="ImageFileHeader">Pointer to the image file header.</param>
     /// <param name="ImageOptionalHeader">Pointer to the image optional header.</param>
     /// <returns>Pointer to the directory entry if found; otherwise, nullptr.</returns>
-    PVOID __stdcall ImageDirectoryEntryToData32(PVOID Base, BOOLEAN MappedAsImage, USHORT DirectoryEntry, ULONG* Size, IMAGE_FILE_HEADER* ImageFileHeader, IMAGE_OPTIONAL_HEADER32* ImageOptionalHeader) const;
+    inline PVOID __stdcall ImageDirectoryEntryToData32(PVOID Base, BOOLEAN MappedAsImage, USHORT DirectoryEntry, ULONG* Size, IMAGE_FILE_HEADER* ImageFileHeader, IMAGE_OPTIONAL_HEADER32* ImageOptionalHeader) const;
     /// <summary>
     /// Retrieves a specific directory entry from a 64-bit image file.
     /// </summary>

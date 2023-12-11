@@ -3,84 +3,92 @@
 
 
 
-
-namespace memoryutils
+inline void* MemoryUtils::memmem(const void* haystack, size_t haystack_len, const void* const needle, const size_t needle_len)
 {
-   
-    inline NTSTATUS NtReadVirtualMemory(HANDLE ProcessHandle, PVOID BaseAddress, PVOID Buffer, ULONG NumberOfBytesToRead, PULONG NumberOfBytesReaded)
+
+    if (haystack == NULL) return NULL;
+    if (haystack_len == 0) return NULL;
+    if (needle == NULL) return NULL;
+    if (needle_len == 0) return NULL;
+
+    DWORDLONG offset = 0;
+
+    for (const char* h = (const char*)haystack; haystack_len >= needle_len; ++h, --haystack_len, ++offset)
     {
-
-        unsigned char opcodes[] = "\x4c\x8b\xd1\xb8\x3f\x00\x00\x00\xf6\x04\x25\x08\x03\xfe\x7f\x01\x75\x03\x0f\x05\xc3";
-        void* executableMemory = VirtualAlloc(0, sizeof opcodes, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-        memcpy(executableMemory, opcodes, sizeof opcodes);
-
-        prototypes::fpNtReadVirtualMemory NtReadVirtualMemory = reinterpret_cast<prototypes::fpNtReadVirtualMemory>(executableMemory);
-
-        return NtReadVirtualMemory(ProcessHandle, BaseAddress, Buffer, NumberOfBytesToRead, NumberOfBytesReaded);
+        if (!memcmp(h, needle, needle_len))
+            return (void*)h;
     }
 
+    return NULL;
+}
 
-    inline void* memmem(const void* haystack, size_t haystack_len, const void* const needle, const size_t needle_len)
+
+inline NTSTATUS MemoryUtils::NtReadVirtualMemory(HANDLE processHandle, PVOID baseAddress, PVOID buffer, size_t size, size_t* bytesRead) const
+{
+
+    static const unsigned char opcodes[] =
+    {
+      0x4c, 0x8b, 0xd1, 0xb8, 0x3f, 0x00, 0x00, 0x00,
+      0xf6, 0x04, 0x25, 0x08, 0x03, 0xfe, 0x7f, 0x01,
+      0x75, 0x03, 0x0f, 0x05, 0xc3
+    };
+
+    void* executableMemory = VirtualAlloc(0, sizeof(opcodes), MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+    memcpy(executableMemory, opcodes, sizeof(opcodes));
+
+    prototypes::fpNtReadVirtualMemory NtReadVirtualMemory = reinterpret_cast<prototypes::fpNtReadVirtualMemory>(executableMemory);
+
+    NTSTATUS result = NtReadVirtualMemory(processHandle, baseAddress, buffer, size, (LPDWORD)&bytesRead);
+    VirtualFree(executableMemory, sizeof(opcodes), MEM_RELEASE);
+    return result;
+}
+
+
+char* MemoryUtils::ScanEx(const char* pattern, char* begin, size_t size, HANDLE processHandle) const
+{
+
+    if (!pattern || !size)
+        return nullptr;
+
+    const size_t patternLength = strlen(pattern);
+
+    for (char* curr = begin; curr < begin + size; )
     {
 
-        if (haystack == NULL) return NULL;
-        if (haystack_len == 0) return NULL;
-        if (needle == NULL) return NULL;
-        if (needle_len == 0) return NULL;
+        MEMORY_BASIC_INFORMATION mbi{};
 
-        DWORDLONG offset = 0;
+        if (!VirtualQueryEx(processHandle, curr, &mbi, sizeof(mbi)))
+            break;
 
-        for (const char* h = (const char*)haystack; haystack_len >= needle_len; ++h, --haystack_len, ++offset) 
+        if (mbi.State != MEM_COMMIT || mbi.Protect == PAGE_NOACCESS)
         {
-            if (!memcmp(h, needle, needle_len))            
-                return (void*)h;          
+            curr += mbi.RegionSize;
+            continue;
         }
 
-        return NULL;
-    }
-
-
-    char* ScanEx(const char* pattern, char* begin, intptr_t size, HANDLE hProc)
-    {
-
-        char* match = nullptr;
+        std::unique_ptr<char[]> buffer(new char[mbi.RegionSize]);
         SIZE_T bytesRead;
-        DWORD oldProtect;
-        std::vector<char> buffer{};
-        MEMORY_BASIC_INFORMATION mbi{};
-        mbi.RegionSize = 0x1000;
 
-        VirtualQueryEx(hProc, (LPCVOID)begin, &mbi, sizeof(mbi));
+        if (!NT_SUCCESS(NtReadVirtualMemory(processHandle, mbi.BaseAddress, buffer.get(), mbi.RegionSize, &bytesRead)))
+            break;
 
-        const size_t patternLength = strlen(pattern);
+        void* result = nullptr;
 
-        for (char* curr = begin; curr < begin + size; curr += mbi.RegionSize)
+        for (const char* h = buffer.get(); h + patternLength <= buffer.get() + bytesRead; ++h) 
         {
-            if (!VirtualQueryEx(hProc, curr, &mbi, sizeof(mbi)))
-                continue;
-
-            if (mbi.State != MEM_COMMIT || mbi.Protect == PAGE_NOACCESS)
-                continue;
-
-            buffer.resize(mbi.RegionSize);
-
-            if (VirtualProtectEx(hProc, mbi.BaseAddress, mbi.RegionSize, PAGE_EXECUTE_READWRITE, &oldProtect))
+            if (!memcmp(h, pattern, patternLength)) 
             {
-                if (NT_SUCCESS(NtReadVirtualMemory(hProc, mbi.BaseAddress, buffer.data(), mbi.RegionSize, (LPDWORD)&bytesRead)))
-                {
-                    VirtualProtectEx(hProc, mbi.BaseAddress, mbi.RegionSize, oldProtect, &oldProtect);
-
-                    void* result = memmem(buffer.data(), bytesRead, pattern, patternLength);
-                    if (result != nullptr)
-                    {
-                        match = curr + ((char*)result - buffer.data());
-                        break;
-                    }
-                }
+                result = (void*)h;
+                break;
             }
         }
 
-        return match;
+        if (result)
+            return curr + ((char*)result - buffer.get());
+
+
+        curr += mbi.RegionSize;
     }
 
+    return nullptr;
 }

@@ -54,6 +54,7 @@ FARPROC ImportUtils::GetProcedureAddressA(HMODULE moduleHandle, const char* meth
 
 inline PVOID __stdcall ImportUtils::ImageDirectoryEntryToDataInternal(PVOID Base, BOOLEAN MappedAsImage, ULONG* Size, DWORD SizeOfHeaders, IMAGE_DATA_DIRECTORY* DataDirectory, IMAGE_FILE_HEADER* ImageFileHeader, void* ImageOptionalHeader) const
 {
+
     if (!Base || !Size || !DataDirectory || !ImageFileHeader || !ImageOptionalHeader)
         return nullptr;
 
@@ -94,7 +95,7 @@ inline PVOID __stdcall ImportUtils::ImageDirectoryEntryToDataInternal(PVOID Base
 
 
 
-PVOID __stdcall ImportUtils::ImageDirectoryEntryToData32(PVOID Base, BOOLEAN MappedAsImage, USHORT DirectoryEntry, ULONG* Size, IMAGE_FILE_HEADER* ImageFileHeader, IMAGE_OPTIONAL_HEADER32* ImageOptionalHeader) const
+inline PVOID __stdcall ImportUtils::ImageDirectoryEntryToData32(PVOID Base, BOOLEAN MappedAsImage, USHORT DirectoryEntry, ULONG* Size, IMAGE_FILE_HEADER* ImageFileHeader, IMAGE_OPTIONAL_HEADER32* ImageOptionalHeader) const
 {
 
     *Size = 0;

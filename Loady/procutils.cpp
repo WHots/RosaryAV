@@ -310,10 +310,9 @@ namespace processutils
         int size = 0;
         NTSTATUS status = NtQueryInformationProcess(hProcess, (PROCESSINFOCLASS)2, &ioCounters, sizeof(ioCounters), nullptr);
 
-        if (NT_SUCCESS(status))
-        {
+        if (NT_SUCCESS(status))   
             size = ioCounters.WriteTransferCount;
-        }
+        
 
         return (size > 0) ? size / 1024 / 1024 : 0;
     }
