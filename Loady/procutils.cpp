@@ -124,13 +124,10 @@ namespace processutils
         NTSTATUS status;
 
         ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
-
         auto NtPrivilegeCheck = utils.DynamicImporter<prototypes::fpNtPrivilegeCheck>("NtPrivilegeCheck");
 
         if (!NtPrivilegeCheck)
             return fail;
-
-        utils.~ImportUtils();
 
         LUID luid;
 
@@ -161,7 +158,7 @@ namespace processutils
         if (!hProcess)
             return mainModuleInfo;
 
-        HMODULE modules[1024];
+        HMODULE modules[1];
         DWORD bytesNeeded;
 
         if (K32EnumProcessModules(hProcess, modules, sizeof(modules), &bytesNeeded))
@@ -173,6 +170,7 @@ namespace processutils
                 if (_tcsstr(moduleName, TEXT(".exe")))
                 {
                     MODULEINFO moduleInfo{};
+
                     if (GetModuleInformation(hProcess, modules[0], &moduleInfo, sizeof(moduleInfo)))
                     {
                         mainModuleInfo.baseAddress = moduleInfo.lpBaseOfDll;
@@ -208,7 +206,7 @@ namespace processutils
     }
 
 
-    int GetMainThreadState(DWORD pid)
+    int MainThreadStartedSuspended(DWORD pid)
     {
 
         HANDLE hMainThread = NULL;
@@ -309,9 +307,15 @@ namespace processutils
         auto NtQueryInformationProcess = utils.DynamicImporter<prototypes::fpNtQueryInformationProcess>("NtQueryInformationProcess");
 
         IO_COUNTERS ioCounters{};
+        int size = 0;
         NTSTATUS status = NtQueryInformationProcess(hProcess, (PROCESSINFOCLASS)2, &ioCounters, sizeof(ioCounters), nullptr);
 
-        return (NT_SUCCESS(status)) ? ioCounters.WriteTransferCount / 1024 / 1024 : -1;
+        if (NT_SUCCESS(status))
+        {
+            size = ioCounters.WriteTransferCount;
+        }
+
+        return (size > 0) ? size / 1024 / 1024 : 0;
     }
 
 
