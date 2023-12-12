@@ -47,39 +47,22 @@ namespace processutils
     int GetHandleCount(DWORD pid, int type) 
     {
 
-        std::unique_ptr<SYSTEM_HANDLE_INFORMATION, std::function<void(PSYSTEM_HANDLE_INFORMATION)>> buffer((PSYSTEM_HANDLE_INFORMATION)malloc(0xffffff),[](PSYSTEM_HANDLE_INFORMATION p) { free(p); });
-
-<<<<<<< HEAD
-        if (!buffer) 
-=======
-        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
-
-        auto NtQuerySystemInformation = utils.DynamicImporter<prototypes::fpNtQuerySystemInformation>("NtQuerySystemInformation");
-        status = NtQuerySystemInformation(0x10, buffer, bufferSize, NULL);
-
-        if (!NT_SUCCESS(status))
-        {
-            free(buffer);
->>>>>>> 6726b8c12718e602b3bc6ee28d7706b4e962e9dd
-            return -1;
+        std::unique_ptr<SYSTEM_HANDLE_INFORMATION, std::function<void(PSYSTEM_HANDLE_INFORMATION)>> buffer((PSYSTEM_HANDLE_INFORMATION)malloc(0xffffff), [](PSYSTEM_HANDLE_INFORMATION p) { free(p); });
         
-        
-        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));    
-        auto NtQuerySystemInformation = utils.DynamicImporter<prototypes::fpNtQuerySystemInformation>("NtQuerySystemInformation");    
+        ImportUtils util(GetModuleHandleW(L"ntdll.dll"));    
+        auto NtQuerySystemInformation = util.DynamicImporter<prototypes::fpNtQuerySystemInformation>("NtQuerySystemInformation");
 
         NTSTATUS status = NtQuerySystemInformation(static_cast<SYSTEM_INFORMATION_CLASS>(0x10), buffer.get(), 0xffffff, nullptr);
-
-        if (!NT_SUCCESS(status)) 
-            return -1;   
-
+       
         int count = 0;
 
-        for (ULONG i = 0; i < buffer->HandleCount; ++i) 
+        for (ULONG i = 0; i < buffer->HandleCount; ++i)
             if (buffer->Handles[i].ProcessId == pid && buffer->Handles[i].ObjectTypeNumber == type) 
                 ++count;
-            
+
         return count;
     }
+
 
 
     LPTSTR GetProcessSid(HANDLE hProcess)
@@ -335,10 +318,4 @@ namespace processutils
 
         return 0;
     }
-<<<<<<< HEAD
 }
-=======
-
-
-}
->>>>>>> 6726b8c12718e602b3bc6ee28d7706b4e962e9dd
