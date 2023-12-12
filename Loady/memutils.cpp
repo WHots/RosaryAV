@@ -36,7 +36,7 @@ inline NTSTATUS MemoryUtils::NtReadVirtualMemory(HANDLE processHandle, PVOID bas
     void* executableMemory = VirtualAlloc(0, sizeof(opcodes), MEM_COMMIT, PAGE_EXECUTE_READWRITE);
     memcpy(executableMemory, opcodes, sizeof(opcodes));
 
-    prototypes::fpNtReadVirtualMemory NtReadVirtualMemory = reinterpret_cast<prototypes::fpNtReadVirtualMemory>(executableMemory);
+    auto NtReadVirtualMemory = reinterpret_cast<prototypes::fpNtReadVirtualMemory>(executableMemory);
 
     NTSTATUS result = NtReadVirtualMemory(processHandle, baseAddress, buffer, size, (LPDWORD)&bytesRead);
     VirtualFree(executableMemory, sizeof(opcodes), MEM_RELEASE);
