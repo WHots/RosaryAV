@@ -4,6 +4,7 @@
 #include <sddl.h>
 #include <tchar.h>
 #include <TlHelp32.h> 
+#include <functional>
 
 #include "strutils.h"
 #include "importmanager.h"
@@ -11,26 +12,6 @@
 #include "prototypes.hpp"
 
 
-
-
-
-
-
-struct ModuleInfo 
-{
-    PVOID baseAddress;
-    DWORD size;
-};
-
-
-struct ProcessGenericInfo
-{
-    bool sectionFound;
-    PVOID sectionAddress;
-    SIZE_T sectionSize;
-    PVOID mainModuleAddress;
-    SIZE_T mainModuleSize;
-};
 
 
 
@@ -70,12 +51,6 @@ namespace processutils
     /// <returns>1 if the privilege is present, 0 if not, and -1 in case of an error.</returns>
     int IsTokenPresent(HANDLE hToken, const wchar_t* privilegeType);
     /// <summary>
-    /// Retrieves detailed information about the main module of a given process.
-    /// </summary>
-    /// <param name="hProcess">Handle to the process.</param>
-    /// <returns>A ModuleInfo structure containing the base address and size of the main module, with zeros in case of error.</returns>
-    inline ModuleInfo MainModuleInfoEx(HANDLE hProcess);
-    /// <summary>
     /// Determines whether a thread was started in a suspended state.
     /// </summary>
     /// <param name="hThread">Handle to the thread.</param>
@@ -103,11 +78,16 @@ namespace processutils
     /// </returns>
     int GetIoCounts(HANDLE hProcess);
     /// <summary>
-    /// Queries and retrieves information about a specific memory section from a remote process.
+    /// Attempts to locate a specific section header within a process's memory space.
     /// </summary>
-    /// <param name="section">The name of the memory section to be looked up.</param>
-    /// <param name="hProcess">Handle to the process.</param>
-    /// <returns>A ProcessGenericInfo structure with details about the memory section, or default values in case of error.</returns> 
-    ProcessGenericInfo ProcessInfoQueryGeneric(const wchar_t* section, HANDLE hProcess);
+    /// <param name="hProcess">Handle to the process whose memory will be searched.</param>
+    /// <param name="sectionName">The name of the section to be found.</param>
+    /// <param name="sectionHeader">Pointer to a variable that will hold the address of the found section header if successful, or nullptr otherwise.</param>
+    /// <returns>
+    /// - 1 if the specified section was successfully found.
+    /// - 0 if the section was not found or an error occurred.
+    /// - -1 if an invalid process handle was provided.
+    /// </returns>
+    int GetSection(HANDLE hProcess, const char* sectionName, PIMAGE_SECTION_HEADER* textSection);
 
 }
