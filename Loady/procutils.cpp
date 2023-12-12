@@ -19,8 +19,6 @@ namespace processutils
         if (!ptrNtQueryInformationProcess)
             return nullptr;
 
-        utils.~ImportUtils();
-
         PROCESS_BASIC_INFORMATION pbi{};
 
         NTSTATUS status = ptrNtQueryInformationProcess(hProcess, ProcessBasicInformation, &pbi, sizeof(pbi), NULL);
