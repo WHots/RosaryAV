@@ -58,7 +58,6 @@ namespace processutils
 
         auto NtQuerySystemInformation = utils.DynamicImporter<prototypes::fpNtQuerySystemInformation>("NtQuerySystemInformation");
         status = NtQuerySystemInformation(0x10, buffer, bufferSize, NULL);
-        utils.~ImportUtils();
 
         if (!NT_SUCCESS(status))
         {
