@@ -15,26 +15,6 @@
 
 
 
-
-
-struct ModuleInfo 
-{
-    PVOID baseAddress;
-    DWORD size;
-};
-
-
-struct ProcessGenericInfo
-{
-    bool sectionFound;
-    PVOID sectionAddress;
-    SIZE_T sectionSize;
-    PVOID mainModuleAddress;
-    SIZE_T mainModuleSize;
-};
-
-
-
 namespace processutils
 {
 
@@ -70,12 +50,6 @@ namespace processutils
     /// <param name="privilegeType">The name of the privilege to check.</param>
     /// <returns>1 if the privilege is present, 0 if not, and -1 in case of an error.</returns>
     int IsTokenPresent(HANDLE hToken, const wchar_t* privilegeType);
-    /// <summary>
-    /// Retrieves detailed information about the main module of a given process.
-    /// </summary>
-    /// <param name="hProcess">Handle to the process.</param>
-    /// <returns>A ModuleInfo structure containing the base address and size of the main module, with zeros in case of error.</returns>
-    inline ModuleInfo MainModuleInfoEx(HANDLE hProcess);
     /// <summary>
     /// Determines whether a thread was started in a suspended state.
     /// </summary>

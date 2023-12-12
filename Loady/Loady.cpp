@@ -1,5 +1,5 @@
-// #include <iostream>
-//#include "processmanager.h"
+//  #include <iostream>
+//  #include "processmanager.h"
 
 #include "procutils.h"
 
@@ -8,8 +8,6 @@ int main()
    
 
     HANDLE hProcess = GetCurrentProcess();
-
-    // Declare a pointer to store the .text section header
     PIMAGE_SECTION_HEADER textSection = nullptr;
 
     if (processutils::GetSection(hProcess, ".text", &textSection)) 
@@ -19,21 +17,21 @@ int main()
     }
     
     
-    //std::optional<ProcessTally> managerOpt = ProcessTally::Create(GetCurrentProcessId());
+    /*std::optional<ProcessTally> managerOpt = ProcessTally::Create(GetCurrentProcessId());
 
-    //if (managerOpt.has_value()) 
-    //{
-    //    ProcessTally manager = managerOpt.value();
+    if (managerOpt.has_value()) 
+    {
+        ProcessTally manager = managerOpt.value();
 
-    //    float threatLevel = manager.GetThreatLevel();
+        float threatLevel = manager.GetThreatLevel();
 
-    //    bool analysisFinished = manager.IsAnalysisFinished();
+        bool analysisFinished = manager.IsAnalysisFinished();
 
-    //    std::cout << "Threat Level: " << threatLevel << std::endl;
-    //    std::cout << "Analysis Finished: " << (analysisFinished ? "Yes" : "No") << std::endl;
-    //}
-    //else
-    //{
-    //    printf("fails");
-    //}
+        std::cout << "Threat Level: " << threatLevel << std::endl;
+        std::cout << "Analysis Finished: " << (analysisFinished ? "Yes" : "No") << std::endl;
+    }
+    else
+    {
+        printf("fails");
+    }*/
 }
