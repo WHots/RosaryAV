@@ -36,6 +36,7 @@ ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0f), finis
         CloseHandle(hToken);
     }
 
+
     std::vector<std::pair<std::wstring, int>> handleTypeCounts{};
 
     handleTypeCounts.emplace_back(std::make_pair(L"Process", processutils::GetHandleCount(pid, 0)));
@@ -46,13 +47,16 @@ ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0f), finis
     {
         if (handleTypeCount.first == L"Process")
         {
-            threatLevel += (handleTypeCount.second >= 1.25) ? handleTypeCount.second : 0.0f;
+            threatLevel += (handleTypeCount.second >= 3) ? handleTypeCount.second : -2.0f;
         }
-        else if (handleTypeCount.first == L"Device")
-            threatLevel += (handleTypeCount.second >= 5) ? handleTypeCount.second : 0.0f;
+        else if (handleTypeCount.first == L"Device")        
+            threatLevel += (handleTypeCount.second >= 5) ? handleTypeCount.second : -5.0f;
+
         else if (handleTypeCount.first == L"RegistryKey")
-            threatLevel += (handleTypeCount.second >= 1) ? handleTypeCount.second : 0.0f;
+            threatLevel += (handleTypeCount.second >= 2) ? handleTypeCount.second / 1.75 : -2.5f;
+        
     }
+
 
     int hiddenThreadCount = processutils::GetHiddenThreadCount(pid);
     threatLevel += (hiddenThreadCount > 0) ? hiddenThreadCount * 2.25 : -5.0;

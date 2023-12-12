@@ -46,37 +46,29 @@ namespace processutils
     }
 
 
-    int GetHandleCount(DWORD pid, int type)
+    int GetHandleCount(DWORD pid, int type) 
     {
 
-        PSYSTEM_HANDLE_INFORMATION buffer{};
-        ULONG bufferSize = 0xffffff;
-        buffer = (PSYSTEM_HANDLE_INFORMATION)malloc(bufferSize);
-        NTSTATUS status;
+        std::unique_ptr<SYSTEM_HANDLE_INFORMATION, std::function<void(PSYSTEM_HANDLE_INFORMATION)>> buffer((PSYSTEM_HANDLE_INFORMATION)malloc(0xffffff),[](PSYSTEM_HANDLE_INFORMATION p) { free(p); });
 
-        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
-
-        auto NtQuerySystemInformation = utils.DynamicImporter<prototypes::fpNtQuerySystemInformation>("NtQuerySystemInformation");
-        status = NtQuerySystemInformation(0x10, buffer, bufferSize, NULL);
-        utils.~ImportUtils();
-
-        if (!NT_SUCCESS(status))
-        {
-            free(buffer);
+        if (!buffer) 
             return -1;
-        }
+        
+        
+        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));    
+        auto NtQuerySystemInformation = utils.DynamicImporter<prototypes::fpNtQuerySystemInformation>("NtQuerySystemInformation");    
 
-        const PVOID ProcAddress = nullptr;
+        NTSTATUS status = NtQuerySystemInformation(static_cast<SYSTEM_INFORMATION_CLASS>(0x10), buffer.get(), 0xffffff, nullptr);
+
+        if (!NT_SUCCESS(status)) 
+            return -1;   
+
         int count = 0;
 
-        for (ULONG i = 0; i <= buffer->HandleCount; i++)
-        {
-            if ((buffer->Handles[i].ProcessId == pid))
-                if (buffer->Handles[i].ObjectTypeNumber == type)
-                    count += 1;
-        }
-
-        free(buffer);
+        for (ULONG i = 0; i < buffer->HandleCount; ++i) 
+            if (buffer->Handles[i].ProcessId == pid && buffer->Handles[i].ObjectTypeNumber == type) 
+                ++count;
+            
         return count;
     }
 
@@ -98,8 +90,6 @@ namespace processutils
 
         DWORD dwSize = 0;
         NtQueryInformationToken(hToken, TokenUser, NULL, 0, &dwSize);
-
-        utils.~ImportUtils();
 
         auto buffer = std::make_unique<BYTE[]>(dwSize);
 
@@ -149,41 +139,6 @@ namespace processutils
 
         return (NT_SUCCESS(status) && hasPrivilege) ? 1 : 0;
     }
-
-
-    inline ModuleInfo MainModuleInfoEx(HANDLE hProcess)
-    {
-        ModuleInfo mainModuleInfo{};
-
-        if (!hProcess)
-            return mainModuleInfo;
-
-        HMODULE modules[1];
-        DWORD bytesNeeded;
-
-        if (K32EnumProcessModules(hProcess, modules, sizeof(modules), &bytesNeeded))
-        {
-            TCHAR moduleName[MAX_PATH];
-
-            if (GetModuleFileNameEx(hProcess, modules[0], moduleName, MAX_PATH))
-            {
-                if (_tcsstr(moduleName, TEXT(".exe")))
-                {
-                    MODULEINFO moduleInfo{};
-
-                    if (GetModuleInformation(hProcess, modules[0], &moduleInfo, sizeof(moduleInfo)))
-                    {
-                        mainModuleInfo.baseAddress = moduleInfo.lpBaseOfDll;
-                        mainModuleInfo.size = moduleInfo.SizeOfImage;
-                    }
-                }
-            }
-        }
-
-        return mainModuleInfo;
-    }
-
-
 
 
     inline int ThreadStartedSuspended(HANDLE hThread)
@@ -265,37 +220,47 @@ namespace processutils
     }
 
 
-    int GetHiddenThreadCount(DWORD pid)
+    int GetHiddenThreadCount(DWORD pid) 
     {
-        
-        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
-        auto NtQueryInformationThread = utils.DynamicImporter<prototypes::fpNtQueryInformationThread>("NtQueryInformationThread");
-
-        THREADENTRY32 te32{};
-        int hiddenThreadCount = 0;
 
         HANDLE hThreadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, pid);
 
-        if (Thread32First(hThreadSnapshot, &te32))
+        if (!hThreadSnapshot) 
+            return 0;
+        
+
+        std::unique_ptr<void, decltype(&CloseHandle)> hThreadSnapshotGuard(hThreadSnapshot, CloseHandle);
+
+        THREADENTRY32 te32{};
+        te32.dwSize = sizeof(THREADENTRY32);
+        int hiddenThreadCount = 0;
+
+        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
+        auto NtQueryInformationThread = utils.DynamicImporter<prototypes::fpNtQueryInformationThread>("NtQueryInformationThread");
+
+        if (Thread32First(hThreadSnapshot, &te32)) 
         {
-            do
+            do 
             {
-                ULONG threadHidden = 0;
-                HANDLE hThread = OpenThread(THREAD_QUERY_INFORMATION, FALSE, te32.th32ThreadID);
-
-                if (hThread)
+                if (te32.th32OwnerProcessID == pid) 
                 {
-                    NTSTATUS status = NtQueryInformationThread(hThread, (THREADINFOCLASS)17, &threadHidden, sizeof(threadHidden), nullptr);
 
-                    if (NT_SUCCESS(status) && threadHidden)                   
-                        hiddenThreadCount++;  
+                    HANDLE hThread = OpenThread(THREAD_QUERY_INFORMATION, FALSE, te32.th32ThreadID);
 
-                    CloseHandle(hThread);
+                    if (hThread) 
+                    {                      
+                        ULONG threadHidden = 0;
+                        NTSTATUS status = NtQueryInformationThread(hThread, (THREADINFOCLASS)17, &threadHidden, sizeof(threadHidden), nullptr);
+
+                        if (NT_SUCCESS(status) && threadHidden) 
+                            ++hiddenThreadCount;       
+
+                        CloseHandle(hThread);
+                    }
                 }
             } while (Thread32Next(hThreadSnapshot, &te32));
         }
 
-        CloseHandle(hThreadSnapshot);
         return hiddenThreadCount;
     }
 
@@ -318,44 +283,47 @@ namespace processutils
     }
 
 
-    ProcessGenericInfo ProcessInfoQueryGeneric(const wchar_t* section, HANDLE hProcess)
+    int GetSection(HANDLE hProcess, const char* sectionName, PIMAGE_SECTION_HEADER* textSection) 
     {
 
-        ProcessGenericInfo sectionInfo{};
-        sectionInfo.sectionFound = false;
+        if (!hProcess)        
+            return -1;
+       
 
-        if (!hProcess)
-            return sectionInfo;
+        std::unique_ptr<HMODULE[]> modules(new HMODULE[1]);
+        DWORD bytesNeeded;
 
+        if (!K32EnumProcessModules(hProcess, modules.get(), sizeof(modules), &bytesNeeded))
+            return -1;
 
-        ModuleInfo moduleInfo = MainModuleInfoEx(hProcess);
-        sectionInfo.mainModuleAddress = moduleInfo.baseAddress;
-        sectionInfo.mainModuleSize = moduleInfo.size;
+        TCHAR moduleName[MAX_PATH];
 
-        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
-        auto NtQueryVirtualMemory = utils.DynamicImporter<prototypes::fpNtQueryVirtualMemory>("NtQueryVirtualMemory");
+        if (!GetModuleFileNameEx(hProcess, modules[0], moduleName, MAX_PATH) || !_tcsstr(moduleName, TEXT(".exe")))
+            return -1;
 
-        MEMORY_BASIC_INFORMATION mbi{};
-        SIZE_T returnLength;
+        MODULEINFO moduleInfo{};
 
-        NTSTATUS status = NtQueryVirtualMemory(hProcess, moduleInfo.baseAddress, MemoryBasicInformation, &mbi, sizeof(mbi), &returnLength);
+        if (!GetModuleInformation(hProcess, modules[0], &moduleInfo, sizeof(moduleInfo)))
+            return -1;
 
-        if (NT_SUCCESS(status))
+        PBYTE moduleBase = reinterpret_cast<PBYTE>(moduleInfo.lpBaseOfDll);
+        const PIMAGE_DOS_HEADER dosHeader = reinterpret_cast<const PIMAGE_DOS_HEADER>(moduleBase);
+        const PIMAGE_NT_HEADERS ntHeaders = reinterpret_cast<const PIMAGE_NT_HEADERS>(moduleBase + dosHeader->e_lfanew);
+
+        if (dosHeader->e_magic != IMAGE_DOS_SIGNATURE || ntHeaders->Signature != IMAGE_NT_SIGNATURE) 
+            return -1;  
+
+        const PIMAGE_SECTION_HEADER sectionHeaders = IMAGE_FIRST_SECTION(ntHeaders);
+
+        for (int i = 0; i < ntHeaders->FileHeader.NumberOfSections; ++i)
         {
-            if (mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE))
+            if (strncmp((char*)sectionHeaders[i].Name, sectionName, IMAGE_SIZEOF_SHORT_NAME) == 0)
             {
-                PIMAGE_DOS_HEADER DosHeader = reinterpret_cast<PIMAGE_DOS_HEADER>(sectionInfo.mainModuleAddress);
-
-                if (DosHeader != nullptr && DosHeader->e_magic == IMAGE_DOS_SIGNATURE)
-                {
-                    PIMAGE_NT_HEADERS NtHeaders = reinterpret_cast<PIMAGE_NT_HEADERS>(reinterpret_cast<BYTE*>(sectionInfo.mainModuleAddress) + DosHeader->e_lfanew);
-                    sectionInfo.sectionFound = true;
-                }               
-            }          
+                *textSection = &sectionHeaders[i];
+                return 1;
+            }
         }
 
-        return sectionInfo;
+        return 0;
     }
-
-
 }

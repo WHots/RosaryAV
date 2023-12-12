@@ -1,32 +1,39 @@
 // #include <iostream>
-#include "processmanager.h"
+//#include "processmanager.h"
 
-//#include "procutils.h"
+#include "procutils.h"
 
 int main()
 {    
    
-    /*HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, 4220);
-    std::cout << processutils::GetIoCounts(hProcess) << std::endl;*/
-    std::optional<ProcessTally> managerOpt = ProcessTally::Create(13580);
 
-    if (managerOpt.has_value()) 
+    HANDLE hProcess = GetCurrentProcess();
+
+    // Declare a pointer to store the .text section header
+    PIMAGE_SECTION_HEADER textSection = nullptr;
+
+    if (processutils::GetSection(hProcess, ".text", &textSection)) 
     {
-        // Access the ProcessManager object.
-        ProcessTally manager = managerOpt.value();
-
-        // Check the threat level.
-        float threatLevel = manager.GetThreatLevel();
-
-        // Check if the analysis is finished.
-        bool analysisFinished = manager.IsAnalysisFinished();
-
-        // Print the results.
-        std::cout << "Threat Level: " << threatLevel << std::endl;
-        std::cout << "Analysis Finished: " << (analysisFinished ? "Yes" : "No") << std::endl;
+        printf("Virtual address: 0x%p\n", textSection->VirtualAddress);
+        printf("Virtual size: %d bytes\n", textSection->Misc.VirtualSize);
     }
-    else
-    {
-        printf("fails");
-    }
+    
+    
+    //std::optional<ProcessTally> managerOpt = ProcessTally::Create(GetCurrentProcessId());
+
+    //if (managerOpt.has_value()) 
+    //{
+    //    ProcessTally manager = managerOpt.value();
+
+    //    float threatLevel = manager.GetThreatLevel();
+
+    //    bool analysisFinished = manager.IsAnalysisFinished();
+
+    //    std::cout << "Threat Level: " << threatLevel << std::endl;
+    //    std::cout << "Analysis Finished: " << (analysisFinished ? "Yes" : "No") << std::endl;
+    //}
+    //else
+    //{
+    //    printf("fails");
+    //}
 }
