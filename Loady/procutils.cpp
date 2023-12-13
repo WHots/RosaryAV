@@ -19,8 +19,6 @@ namespace processutils
         if (!ptrNtQueryInformationProcess)
             return nullptr;
 
-        utils.~ImportUtils();
-
         PROCESS_BASIC_INFORMATION pbi{};
 
         NTSTATUS status = ptrNtQueryInformationProcess(hProcess, ProcessBasicInformation, &pbi, sizeof(pbi), NULL);
@@ -49,28 +47,37 @@ namespace processutils
     int GetHandleCount(DWORD pid, int type) 
     {
 
-        std::unique_ptr<SYSTEM_HANDLE_INFORMATION, std::function<void(PSYSTEM_HANDLE_INFORMATION)>> buffer((PSYSTEM_HANDLE_INFORMATION)malloc(0xffffff),[](PSYSTEM_HANDLE_INFORMATION p) { free(p); });
+        PSYSTEM_HANDLE_INFORMATION buffer{};
+        ULONG bufferSize = 0xffffff;
+        buffer = (PSYSTEM_HANDLE_INFORMATION)malloc(bufferSize);
+        NTSTATUS status;
 
-        if (!buffer) 
+        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
+
+        auto NtQuerySystemInformation = utils.DynamicImporter<prototypes::fpNtQuerySystemInformation>("NtQuerySystemInformation");
+        status = NtQuerySystemInformation(0x10, buffer, bufferSize, NULL);
+        utils.~ImportUtils();
+
+        if (!NT_SUCCESS(status))
+        {
+            free(buffer);
             return -1;
-        
-        
-        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));    
-        auto NtQuerySystemInformation = utils.DynamicImporter<prototypes::fpNtQuerySystemInformation>("NtQuerySystemInformation");    
+        }
 
-        NTSTATUS status = NtQuerySystemInformation(static_cast<SYSTEM_INFORMATION_CLASS>(0x10), buffer.get(), 0xffffff, nullptr);
-
-        if (!NT_SUCCESS(status)) 
-            return -1;   
-
+        const PVOID ProcAddress = nullptr;
         int count = 0;
 
-        for (ULONG i = 0; i < buffer->HandleCount; ++i) 
-            if (buffer->Handles[i].ProcessId == pid && buffer->Handles[i].ObjectTypeNumber == type) 
-                ++count;
-            
+        for (ULONG i = 0; i <= buffer->HandleCount; i++)
+        {
+            if ((buffer->Handles[i].ProcessId == pid))
+                if (buffer->Handles[i].ObjectTypeNumber == type)
+                    count += 1;
+        }
+
+        free(buffer);
         return count;
     }
+
 
 
     LPTSTR GetProcessSid(HANDLE hProcess)
