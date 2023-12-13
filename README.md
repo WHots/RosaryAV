@@ -1,8 +1,14 @@
 # RosaryAV - Lightweight Threat Detection
 
 ## Overview
-RosaryAV is a nascent threat detection solution designed with a focus on efficiency and minimal resource usage. This user-side project serves as an open-source reference for developers with similar interests in cybersecurity and system protection. Our goal is to provide a foundation for detecting potential threats in a non-invasive manner, paving the way for a future transition into a comprehensive anti-virus solution.
+RosaryAV is a nascent threat detection solution designed with a focus on efficiency and minimal resource usage. This user-side project serves as an open-source reference for developers with similar interests in cybersecurity and system protection. Our goal is to provide a foundation for detecting potential threats in a non-invasive manner, paving the way for a future transition into a comprehensive anti-virus solution. 
 
+**This public repo will not contain any type of:**
+- Injection techniques: RosaryAV does not utilize any injection techniques for code execution or manipulation.
+- Malicious evasive techniques: This project does not employ any malicious techniques to bypass security mechanisms or obfuscate its functionality.
+- Self-security: As a development project, RosaryAV does not prioritize self-protection features at this stage.
+
+  
 ## Current Focus
 - **Threat Detection**: Custom methodologies of heuristic & triage methods to identify potential system threats.
 - **Performance**: Ensuring low resource consumption and minimal impact on user experience.
