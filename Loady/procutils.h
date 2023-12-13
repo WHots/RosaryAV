@@ -88,6 +88,6 @@ namespace processutils
     /// - 0 if the section was not found or an error occurred.
     /// - -1 if an invalid process handle was provided.
     /// </returns>
-    int GetSection(HANDLE hProcess, const char* sectionName, PIMAGE_SECTION_HEADER* textSection);
+    int GetSection(HANDLE hProcess, const char* sectionName, PIMAGE_SECTION_HEADER* targetSection);
 
 }

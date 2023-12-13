@@ -14,27 +14,22 @@ ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0f), finis
         return;
     
 
-    threatLevel += (processutils::MainThreadStartedSuspended(pid) == 1) ? 7.5 : -5.25;
+    threatLevel += (processutils::MainThreadStartedSuspended(pid) == 1) ? 4.0 : -4.0;
+
 
     HANDLE hToken{};
-    
-    auto adjustThreatLevel = [](int result, float pass, float fail) -> float
-    {
-        switch (result)
-        {
-            case 0:  return fail;
-            case 1:  return pass;
-            default: return 0.0;
-        }
-    };
-
+      
     if (OpenProcessToken(hProcess, TOKEN_QUERY, &hToken))
     {
         for (const auto& privilege : processPrivilegeTokens)
-            threatLevel += adjustThreatLevel(processutils::IsTokenPresent(hToken, privilege), 2.5, -2.0);
+            threatLevel += (processutils::IsTokenPresent(hToken, privilege) == 1) ? 2.5f : -2.0f;
 
         CloseHandle(hToken);
     }
+
+
+    PIMAGE_SECTION_HEADER header = nullptr; //  ...
+    threatLevel += (processutils::GetSection(hProcess, ".text", &header) == 1) ? -2.50 : 2.50;
 
 
     std::vector<std::pair<std::wstring, int>> handleTypeCounts{};
@@ -53,16 +48,15 @@ ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0f), finis
             threatLevel += (handleTypeCount.second >= 5) ? handleTypeCount.second : -5.0f;
 
         else if (handleTypeCount.first == L"RegistryKey")
-            threatLevel += (handleTypeCount.second >= 2) ? handleTypeCount.second / 1.75 : -2.5f;
-        
+            threatLevel += (handleTypeCount.second >= 2) ? handleTypeCount.second / 1.75 : -2.5f;        
     }
 
 
     int hiddenThreadCount = processutils::GetHiddenThreadCount(pid);
-    threatLevel += (hiddenThreadCount > 0) ? hiddenThreadCount * 2.25 : -5.0;
+    threatLevel += (hiddenThreadCount > 0) ? hiddenThreadCount * 2.25 : -3.0;
 
     int dataWrittenMb = processutils::GetIoCounts(hProcess);
-    threatLevel += (dataWrittenMb >= 1) ? hiddenThreadCount * 1.75 : -5.0;
+    threatLevel += (dataWrittenMb >= 1) ? 2.25 : -2.75;
 
     finishedAnal = true;
     threatLevel = (threatLevel > 100.0f) ? 100.0f : threatLevel;
@@ -79,6 +73,7 @@ std::optional<ProcessTally> ProcessTally::Create(DWORD procId)
 
     return manager;
 }
+
 
 
 ProcessTally::~ProcessTally()

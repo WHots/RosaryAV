@@ -56,7 +56,6 @@ namespace processutils
 
         auto NtQuerySystemInformation = utils.DynamicImporter<prototypes::fpNtQuerySystemInformation>("NtQuerySystemInformation");
         status = NtQuerySystemInformation(0x10, buffer, bufferSize, NULL);
-        utils.~ImportUtils();
 
         if (!NT_SUCCESS(status))
         {
@@ -290,7 +289,7 @@ namespace processutils
     }
 
 
-    int GetSection(HANDLE hProcess, const char* sectionName, PIMAGE_SECTION_HEADER* textSection) 
+    int GetSection(HANDLE hProcess, const char* sectionName, PIMAGE_SECTION_HEADER* targetSection) 
     {
 
         if (!hProcess)        
@@ -326,7 +325,7 @@ namespace processutils
         {
             if (strncmp((char*)sectionHeaders[i].Name, sectionName, IMAGE_SIZEOF_SHORT_NAME) == 0)
             {
-                *textSection = &sectionHeaders[i];
+                *targetSection = &sectionHeaders[i];
                 return 1;
             }
         }
