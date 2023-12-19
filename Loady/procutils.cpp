@@ -6,7 +6,7 @@
 namespace processutils
 {
 
-    inline PEB* PebBaseAddress(HANDLE hProcess)
+    static inline PEB* PebBaseAddressEx(HANDLE hProcess)
     {
 
         if (hProcess == INVALID_HANDLE_VALUE)
@@ -33,7 +33,7 @@ namespace processutils
     PVOID GetProcessHeapAddress(HANDLE hProcess)
     {
 
-        PEB* pebBase = PebBaseAddress(hProcess);
+        PEB* pebBase = PebBaseAddressEx(hProcess);
 
         PVOID processHeapAddress = (PVOID)((char*)pebBase + 0x30);
         PVOID processHeap = nullptr;
@@ -44,57 +44,42 @@ namespace processutils
     }
 
 
-    int GetHandleCount(DWORD pid, int type) 
+    int GetCurrentHandleCount(const int pid, const int type)
     {
 
-        PSYSTEM_HANDLE_INFORMATION buffer{};
-        ULONG bufferSize = 0xffffff;
-        buffer = (PSYSTEM_HANDLE_INFORMATION)malloc(bufferSize);
-        NTSTATUS status;
+        size_t bufferSize = 0;
+        std::unique_ptr<SYSTEM_HANDLE_INFORMATION> buffer(new SYSTEM_HANDLE_INFORMATION[bufferSize / sizeof(SYSTEM_HANDLE_INFORMATION)]);
 
-        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
+        ImportUtils util(GetModuleHandleW(L"ntdll.dll"));
+        auto NtQuerySystemInformation = util.DynamicImporter<prototypes::fpNtQuerySystemInformation>("NtQuerySystemInformation");
 
-        auto NtQuerySystemInformation = utils.DynamicImporter<prototypes::fpNtQuerySystemInformation>("NtQuerySystemInformation");
-        status = NtQuerySystemInformation(0x10, buffer, bufferSize, NULL);
+        NTSTATUS status = NtQuerySystemInformation(static_cast<SYSTEM_INFORMATION_CLASS>(0x10), buffer.get(), 0xffffff, nullptr);
 
-        if (!NT_SUCCESS(status))
-        {
-            free(buffer);
-            return -1;
-        }
-
-        const PVOID ProcAddress = nullptr;
         int count = 0;
 
-        for (ULONG i = 0; i <= buffer->HandleCount; i++)
-        {
-            if ((buffer->Handles[i].ProcessId == pid))
-                if (buffer->Handles[i].ObjectTypeNumber == type)
-                    count += 1;
-        }
+        for (size_t i = 0; i < buffer->HandleCount; ++i)
+            if (buffer->Handles[i].ProcessId == pid && buffer->Handles[i].ObjectTypeNumber == type)
+                ++count;
 
-        free(buffer);
         return count;
     }
 
 
-
-    LPTSTR GetProcessSid(HANDLE hProcess)
+    PTSTR GetProcessSid(const HANDLE hProcess)
     {
 
         HANDLE hToken = nullptr;
-        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
+        std::unique_ptr<void, decltype(&CloseHandle)> tokenGuard(hToken, CloseHandle);
 
+        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
         auto NtOpenProcessToken = utils.DynamicImporter<prototypes::fpNtOpenProcessToken>("NtOpenProcessToken");
 
         if (!NT_SUCCESS(NtOpenProcessToken(hProcess, TOKEN_QUERY, &hToken)))
-            return nullptr;
-
-        std::unique_ptr<void, decltype(&CloseHandle)> tokenGuard(hToken, CloseHandle);
+            return nullptr;       
 
         auto NtQueryInformationToken = utils.DynamicImporter<prototypes::fpNtQueryInformationToken>("NtQueryInformationToken");
 
-        DWORD dwSize = 0;
+        ULONG dwSize = 0;
         NtQueryInformationToken(hToken, TokenUser, NULL, 0, &dwSize);
 
         auto buffer = std::make_unique<BYTE[]>(dwSize);
@@ -103,17 +88,17 @@ namespace processutils
             return nullptr;
 
         LPTSTR sidString = nullptr;
+        std::unique_ptr<TCHAR, decltype(&LocalFree)> sidGuard(sidString, LocalFree);
 
         if (!ConvertSidToStringSidW(reinterpret_cast<PTOKEN_USER>(buffer.get())->User.Sid, &sidString))
             return nullptr;
 
-        std::unique_ptr<TCHAR, decltype(&LocalFree)> sidGuard(sidString, LocalFree);
 
         return _tcsdup(sidString);
     }
 
 
-    int IsTokenPresent(HANDLE hToken, const wchar_t* privilegeType)
+    int IsTokenPresent(const HANDLE hToken, const wchar_t* privilegeType)
     {
         
         int fail = -1;
@@ -125,7 +110,7 @@ namespace processutils
         if (!NtPrivilegeCheck)
             return fail;
 
-        LUID luid;
+        LUID luid{};
 
         if (!LookupPrivilegeValueW(nullptr, privilegeType, &luid))
             return fail;
@@ -147,7 +132,7 @@ namespace processutils
     }
 
 
-    inline int ThreadStartedSuspended(HANDLE hThread)
+    static inline int ThreadStartedSuspended(HANDLE hThread)
     {
 
         ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
@@ -167,7 +152,7 @@ namespace processutils
     }
 
 
-    int MainThreadStartedSuspended(DWORD pid)
+    int GetOldestThreadStartFlag(const int pid)
     {
 
         HANDLE hMainThread = NULL;
@@ -205,10 +190,9 @@ namespace processutils
                                         CloseHandle(hMainThread);
 
                                     hMainThread = hThread;
-                                }
-                                else
-                                    CloseHandle(hThread);
+                                }                                                               
                             }
+                            CloseHandle(hThread);
                         }
                     }
                 } while (Thread32Next(hThreadSnapshot, &te32));
@@ -226,7 +210,7 @@ namespace processutils
     }
 
 
-    int GetHiddenThreadCount(DWORD pid) 
+    int GetHiddenThreadCount(const int pid) 
     {
 
         HANDLE hThreadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, pid);
@@ -271,14 +255,14 @@ namespace processutils
     }
 
 
-    int GetIoCounts(HANDLE hProcess)
+    int GetWriteCount(const HANDLE hProcess)
     {
 
         ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
         auto NtQueryInformationProcess = utils.DynamicImporter<prototypes::fpNtQueryInformationProcess>("NtQueryInformationProcess");
 
         IO_COUNTERS ioCounters{};
-        int size = 0;
+        size_t size = 0;
         NTSTATUS status = NtQueryInformationProcess(hProcess, (PROCESSINFOCLASS)2, &ioCounters, sizeof(ioCounters), nullptr);
 
         if (NT_SUCCESS(status))   
@@ -289,7 +273,7 @@ namespace processutils
     }
 
 
-    int GetSection(HANDLE hProcess, const char* sectionName, PIMAGE_SECTION_HEADER* targetSection) 
+    int GetSectionHeader(const HANDLE hProcess, const char* sectionName, PIMAGE_SECTION_HEADER* targetSection) 
     {
 
         if (!hProcess)        
@@ -309,7 +293,7 @@ namespace processutils
 
         MODULEINFO moduleInfo{};
 
-        if (!GetModuleInformation(hProcess, modules[0], &moduleInfo, sizeof(moduleInfo)))
+        if (!K32GetModuleInformation(hProcess, modules[0], &moduleInfo, sizeof(moduleInfo)))
             return -1;
 
         PBYTE moduleBase = reinterpret_cast<PBYTE>(moduleInfo.lpBaseOfDll);

@@ -8,12 +8,12 @@
 namespace fileutils
 {
 
-    BOOL GetExecutablePathName(HANDLE hProcess, std::string& outPath)
+    BOOL GetExecutablePathName(const HANDLE hProcess, std::string& outPath)
     {
 
         wchar_t buffer[MAX_PATH];
 
-        DWORD result = K32GetModuleFileNameExW(hProcess, NULL, buffer, MAX_PATH);
+        int result = K32GetModuleFileNameExW(hProcess, NULL, buffer, MAX_PATH);
 
         if (result != 0)
         {
@@ -31,7 +31,7 @@ namespace fileutils
         DWORD lpdwHandle;
         std::string internalName = "";
 
-        DWORD size = GetFileVersionInfoSizeW(filePath, &lpdwHandle);
+        size_t size = GetFileVersionInfoSizeW(filePath, &lpdwHandle);
         std::vector<char> data(size);
 
         if (!GetFileVersionInfoW(filePath, 0, size, data.data()))
@@ -53,7 +53,7 @@ namespace fileutils
 
         DWORD lpdwHandle;
 
-        DWORD size = GetFileVersionInfoSizeW(filePath, &lpdwHandle);
+        size_t size = GetFileVersionInfoSizeW(filePath, &lpdwHandle);
         std::vector<char> data(size);
 
         if (!GetFileVersionInfoW(filePath, 0, size, data.data()))
@@ -104,8 +104,8 @@ namespace fileutils
         if (!GetFileVersionInfoW(filePath, 0, size, data.data()))
             return internalName;
 
-        void* buffer;
-        UINT length;
+        void* buffer{};
+        UINT length = 0;
 
         if (VerQueryValueW(data.data(), TEXT("\\StringFileInfo\\040904b0\\InternalName"), &buffer, &length))
             internalName = stringutil::WideStringToUTF8(static_cast<wchar_t*>(buffer));

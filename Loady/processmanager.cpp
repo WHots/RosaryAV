@@ -10,11 +10,11 @@ ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0f), finis
 
     hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
 
-    if (!hProcess)    
+    if (!hProcess)
         return;
     
 
-    threatLevel += (processutils::MainThreadStartedSuspended(pid) == 1) ? 4.0 : -4.0;
+    threatLevel += (processutils::GetOldestThreadStartFlag(pid) == 1) ? 4.0 : -4.0;
 
 
     HANDLE hToken{};
@@ -29,14 +29,14 @@ ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0f), finis
 
 
     PIMAGE_SECTION_HEADER header = nullptr; //  ...
-    threatLevel += (processutils::GetSection(hProcess, ".text", &header) == 1) ? -2.50 : 2.50;
+    threatLevel += (processutils::GetSectionHeader(hProcess, ".text", &header) == 1) ? -2.50 : 2.50;
 
 
     std::vector<std::pair<std::wstring, int>> handleTypeCounts{};
 
-    handleTypeCounts.emplace_back(std::make_pair(L"Process", processutils::GetHandleCount(pid, 0)));
-    handleTypeCounts.emplace_back(std::make_pair(L"Device", processutils::GetHandleCount(pid, 3)));
-    handleTypeCounts.emplace_back(std::make_pair(L"RegistryKey", processutils::GetHandleCount(pid, 17)));
+    handleTypeCounts.emplace_back(std::make_pair(L"Process", processutils::GetCurrentHandleCount(pid, 0)));
+    handleTypeCounts.emplace_back(std::make_pair(L"Device", processutils::GetCurrentHandleCount(pid, 3)));
+    handleTypeCounts.emplace_back(std::make_pair(L"RegistryKey", processutils::GetCurrentHandleCount(pid, 17)));
 
     for (const auto& handleTypeCount : handleTypeCounts)
     {
@@ -55,7 +55,7 @@ ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0f), finis
     int hiddenThreadCount = processutils::GetHiddenThreadCount(pid);
     threatLevel += (hiddenThreadCount > 0) ? hiddenThreadCount * 2.25 : -3.0;
 
-    int dataWrittenMb = processutils::GetIoCounts(hProcess);
+    int dataWrittenMb = processutils::GetWriteCount(hProcess);
     threatLevel += (dataWrittenMb >= 1) ? 2.25 : -2.75;
 
     finishedAnal = true;

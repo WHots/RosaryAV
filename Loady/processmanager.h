@@ -27,6 +27,7 @@ class ProcessTally
     /// </summary>
     bool finishedAnal;
 
+
     std::vector<const wchar_t*> processPrivilegeTokens = 
     {
         SE_CREATE_TOKEN_NAME,
@@ -44,7 +45,6 @@ class ProcessTally
         SE_ENABLE_DELEGATION_NAME,
         SE_MANAGE_VOLUME_NAME
     };
-
 
 
     ProcessTally(DWORD procId);

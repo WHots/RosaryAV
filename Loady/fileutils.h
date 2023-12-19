@@ -26,7 +26,7 @@ namespace fileutils
 	/// <param name="hProcess">Handle to the process.</param>
 	/// <param name="outPath">String to store the path of the executable file.</param>
 	/// <returns>TRUE if the path is successfully retrieved, otherwise FALSE.</returns>
-	BOOL GetExecutablePathName(HANDLE hProcess, std::string& outPath);
+	BOOL GetExecutablePathName(const HANDLE hProcess, std::string& outPath);
 	/// <summary>
 	/// Calculates the MD5 hash of a file.
 	/// </summary>

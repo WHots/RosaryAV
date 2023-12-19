@@ -4,6 +4,8 @@
 
 
 
+
+
 inline void* MemoryUtils::memmem(const void* haystack, size_t haystack_len, const void* const needle, const size_t needle_len)
 {
 
@@ -68,7 +70,7 @@ char* MemoryUtils::ScanEx(const char* pattern, char* begin, size_t size, HANDLE 
         }
 
         std::unique_ptr<char[]> buffer(new char[mbi.RegionSize]);
-        SIZE_T bytesRead;
+        SIZE_T bytesRead = 0;
 
         if (!NT_SUCCESS(NtReadVirtualMemory(processHandle, mbi.BaseAddress, buffer.get(), mbi.RegionSize, &bytesRead)))
             break;
