@@ -46,7 +46,6 @@ inline NTSTATUS MemoryUtils::NtReadVirtualMemory(const HANDLE processHandle, con
 }
 
 
-
 char* MemoryUtils::ScanEx(const char* pattern, char* begin, const size_t size, const HANDLE processHandle)
 {
     if (!pattern || !size)
@@ -60,7 +59,6 @@ char* MemoryUtils::ScanEx(const char* pattern, char* begin, const size_t size, c
         if (!VirtualQueryEx(processHandle, curr, &mbi, sizeof(mbi)))
             break;
 
-        // Check if the memory region is readable
         if (!(mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY)))
         {
             curr = reinterpret_cast<char*>(mbi.BaseAddress) + mbi.RegionSize;
@@ -70,14 +68,12 @@ char* MemoryUtils::ScanEx(const char* pattern, char* begin, const size_t size, c
         std::unique_ptr<char[]> buffer(new char[mbi.RegionSize]);
         size_t bytesRead = 0;
 
-        // Use your NtReadVirtualMemory method
         if (!NT_SUCCESS(NtReadVirtualMemory(processHandle, mbi.BaseAddress, buffer.get(), mbi.RegionSize, &bytesRead)) || bytesRead == 0)
         {
             curr = reinterpret_cast<char*>(mbi.BaseAddress) + mbi.RegionSize;
             continue;
         }
 
-        // Use memmem to efficiently find the pattern within the buffer
         std::byte* result = memmem(reinterpret_cast<std::byte*>(buffer.get()), bytesRead, reinterpret_cast<const std::byte*>(pattern), patternLength);
 
         if (result)
