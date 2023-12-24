@@ -36,8 +36,10 @@ struct ImportUtils
         switch (apiLocation) 
         {
             case 0:
-                return reinterpret_cast<T>(GetProcedureAddressA(hModule, method));           
+#pragma warning(suppress : 4191)
+                return reinterpret_cast<T>(GetProcedureAddressA(hModule, method));
             case 1:
+#pragma warning(suppress : 4191)
                 return reinterpret_cast<T>(GetExportAddress(hModule, method, TRUE));
             default:
                 return nullptr;

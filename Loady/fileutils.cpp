@@ -31,7 +31,7 @@ namespace fileutils
         DWORD lpdwHandle;
         std::string internalName = "";
 
-        size_t size = GetFileVersionInfoSizeW(filePath, &lpdwHandle);
+        DWORD size = GetFileVersionInfoSizeW(filePath, &lpdwHandle);
         std::vector<char> data(size);
 
         if (!GetFileVersionInfoW(filePath, 0, size, data.data()))
@@ -53,7 +53,7 @@ namespace fileutils
 
         DWORD lpdwHandle;
 
-        size_t size = GetFileVersionInfoSizeW(filePath, &lpdwHandle);
+        DWORD size = GetFileVersionInfoSizeW(filePath, &lpdwHandle);
         std::vector<char> data(size);
 
         if (!GetFileVersionInfoW(filePath, 0, size, data.data()))
@@ -163,7 +163,7 @@ namespace fileutils
 
         std::array<long, 256> frequency{};
         std::vector<char> buffer(1024 * 1024);
-        long totalBytes = 0;
+        std::streamsize totalBytes = 0;
 
         while (file.read(buffer.data(), buffer.size()) || file.gcount())
         {

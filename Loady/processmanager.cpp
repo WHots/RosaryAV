@@ -5,7 +5,7 @@
 
 
 
-ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0f), finishedAnal(false)
+ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0), finishedAnal(false)
 {
 
     hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
@@ -22,7 +22,7 @@ ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0f), finis
     if (OpenProcessToken(hProcess, TOKEN_QUERY, &hToken))
     {
         for (const auto& privilege : processPrivilegeTokens)
-            threatLevel += (processutils::IsTokenPresent(hToken, privilege) == 1) ? 2.5f : -2.0f;
+            threatLevel += (processutils::IsTokenPresent(hToken, privilege) == 1) ? 2.5 : -2.0;
 
         CloseHandle(hToken);
     }
@@ -42,13 +42,13 @@ ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0f), finis
     {
         if (handleTypeCount.first == L"Process")
         {
-            threatLevel += (handleTypeCount.second >= 3) ? handleTypeCount.second : -2.0f;
+            threatLevel += (handleTypeCount.second >= 3) ? handleTypeCount.second : -2.0;
         }
         else if (handleTypeCount.first == L"Device")        
-            threatLevel += (handleTypeCount.second >= 5) ? handleTypeCount.second : -5.0f;
+            threatLevel += (handleTypeCount.second >= 5) ? handleTypeCount.second : -5.0;
 
         else if (handleTypeCount.first == L"RegistryKey")
-            threatLevel += (handleTypeCount.second >= 2) ? handleTypeCount.second / 1.75 : -2.5f;        
+            threatLevel += (handleTypeCount.second >= 2) ? handleTypeCount.second / 1.75 : -2.5;        
     }
 
 

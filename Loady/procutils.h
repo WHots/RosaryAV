@@ -23,13 +23,13 @@ namespace processutils
     /// </summary>
     /// <param name="hProcess">Handle to the process.</param>
     /// <returns>Pointer to the PEB of the process, otherwise nullptr.</returns>
-    static inline PEB* PebBaseAddressEx(HANDLE hProcess);
+    static inline PEB* PebBaseAddressEx(const HANDLE hProcess);
     /// <summary>
     /// Retrieves the heap address for the specified process.
     /// </summary>
     /// <param name="hProcess">Handle to the process.</param>
     /// <returns>Address to the process heap, otherwise nullptr.</returns>
-    PVOID GetProcessHeapAddress(HANDLE hProcess);
+    PVOID GetProcessHeapAddress(const HANDLE hProcess);
     /// <summary>
     /// Gets the count of handles of a specified type within a given process.
     /// </summary>

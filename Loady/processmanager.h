@@ -21,7 +21,7 @@ class ProcessTally
     /// <summary>
     /// Complete target process threat level.
     /// </summary>
-    float threatLevel;
+    double threatLevel;
     /// <summary>
     /// Indicates if the anal process has ran to completion or not.
     /// </summary>
@@ -53,7 +53,7 @@ class ProcessTally
 public:
 
 
-    float GetThreatLevel() const 
+    double GetThreatLevel() const 
     {
         return threatLevel;
     }

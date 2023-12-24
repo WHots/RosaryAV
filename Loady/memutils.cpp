@@ -5,28 +5,23 @@
 
 
 
-
-inline void* MemoryUtils::memmem(const void* haystack, size_t haystack_len, const void* const needle, const size_t needle_len)
+inline std::byte* MemoryUtils::memmem(std::byte* haystack, size_t haystack_len, const void* needle, size_t needle_len) 
 {
 
-    if (haystack == NULL) return NULL;
-    if (haystack_len == 0) return NULL;
-    if (needle == NULL) return NULL;
-    if (needle_len == 0) return NULL;
+    if (!haystack || haystack_len == 0 || !needle || needle_len == 0)
+        return nullptr;
+    
 
-    DWORDLONG offset = 0;
+    for (std::byte* h = haystack; haystack_len >= needle_len; ++h, --haystack_len)
+        if (!std::memcmp(h, needle, needle_len)) 
+            return h;
+        
 
-    for (const char* h = (const char*)haystack; haystack_len >= needle_len; ++h, --haystack_len, ++offset)
-    {
-        if (!memcmp(h, needle, needle_len))
-            return (void*)h;
-    }
-
-    return NULL;
+    return nullptr;
 }
 
 
-inline NTSTATUS MemoryUtils::NtReadVirtualMemory(HANDLE processHandle, PVOID baseAddress, PVOID buffer, size_t size, size_t* bytesRead) const
+inline NTSTATUS MemoryUtils::NtReadVirtualMemory(const HANDLE processHandle, const PVOID baseAddress, const PVOID buffer, const size_t size, size_t* bytesRead) const
 {
 
     static const unsigned char opcodes[] =
@@ -37,7 +32,11 @@ inline NTSTATUS MemoryUtils::NtReadVirtualMemory(HANDLE processHandle, PVOID bas
     };
 
     void* executableMemory = VirtualAlloc(0, sizeof(opcodes), MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-    memcpy(executableMemory, opcodes, sizeof(opcodes));
+
+    if (executableMemory)
+        memcpy(executableMemory, opcodes, sizeof(opcodes));
+    else
+        return 0;
 
     auto NtReadVirtualMemory = reinterpret_cast<prototypes::fpNtReadVirtualMemory>(executableMemory);
 
@@ -47,9 +46,9 @@ inline NTSTATUS MemoryUtils::NtReadVirtualMemory(HANDLE processHandle, PVOID bas
 }
 
 
-char* MemoryUtils::ScanEx(const char* pattern, char* begin, size_t size, HANDLE processHandle) const
-{
 
+char* MemoryUtils::ScanEx(const char* pattern, char* begin, const size_t size, const HANDLE processHandle)
+{
     if (!pattern || !size)
         return nullptr;
 
@@ -57,40 +56,34 @@ char* MemoryUtils::ScanEx(const char* pattern, char* begin, size_t size, HANDLE 
 
     for (char* curr = begin; curr < begin + size; )
     {
-
-        MEMORY_BASIC_INFORMATION mbi{};
-
+        MEMORY_BASIC_INFORMATION mbi;
         if (!VirtualQueryEx(processHandle, curr, &mbi, sizeof(mbi)))
             break;
 
-        if (mbi.State != MEM_COMMIT || mbi.Protect == PAGE_NOACCESS)
+        // Check if the memory region is readable
+        if (!(mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY)))
         {
-            curr += mbi.RegionSize;
+            curr = reinterpret_cast<char*>(mbi.BaseAddress) + mbi.RegionSize;
             continue;
         }
 
         std::unique_ptr<char[]> buffer(new char[mbi.RegionSize]);
-        SIZE_T bytesRead = 0;
+        size_t bytesRead = 0;
 
-        if (!NT_SUCCESS(NtReadVirtualMemory(processHandle, mbi.BaseAddress, buffer.get(), mbi.RegionSize, &bytesRead)))
-            break;
-
-        void* result = nullptr;
-
-        for (const char* h = buffer.get(); h + patternLength <= buffer.get() + bytesRead; ++h) 
+        // Use your NtReadVirtualMemory method
+        if (!NT_SUCCESS(NtReadVirtualMemory(processHandle, mbi.BaseAddress, buffer.get(), mbi.RegionSize, &bytesRead)) || bytesRead == 0)
         {
-            if (!memcmp(h, pattern, patternLength)) 
-            {
-                result = (void*)h;
-                break;
-            }
+            curr = reinterpret_cast<char*>(mbi.BaseAddress) + mbi.RegionSize;
+            continue;
         }
 
+        // Use memmem to efficiently find the pattern within the buffer
+        std::byte* result = memmem(reinterpret_cast<std::byte*>(buffer.get()), bytesRead, reinterpret_cast<const std::byte*>(pattern), patternLength);
+
         if (result)
-            return curr + ((char*)result - buffer.get());
+            return curr + (result - reinterpret_cast<std::byte*>(buffer.get()));
 
-
-        curr += mbi.RegionSize;
+        curr = reinterpret_cast<char*>(mbi.BaseAddress) + mbi.RegionSize;
     }
 
     return nullptr;

@@ -6,7 +6,7 @@
 namespace processutils
 {
 
-    static inline PEB* PebBaseAddressEx(HANDLE hProcess)
+    static inline PEB* PebBaseAddressEx(const HANDLE hProcess)
     {
 
         if (hProcess == INVALID_HANDLE_VALUE)
@@ -30,7 +30,7 @@ namespace processutils
     }
 
 
-    PVOID GetProcessHeapAddress(HANDLE hProcess)
+    PVOID GetProcessHeapAddress(const HANDLE hProcess)
     {
 
         PEB* pebBase = PebBaseAddressEx(hProcess);
