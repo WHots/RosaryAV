@@ -18,13 +18,12 @@ int main()
         return 1;
     }
 
-    // Print the SID string
+
     wprintf(L"%s\n", sidString);
 
-    // Free the allocated memory
+
     LocalFree(sidString);
 
-    // Close the process handle
     CloseHandle(hProcess);
 
     return 1;
