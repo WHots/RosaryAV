@@ -26,12 +26,12 @@ inline NTSTATUS MemoryUtils::NtReadVirtualMemory(const HANDLE processHandle, con
 
     static const unsigned char opcodes[] =
     {
-      0x4c, 0x8b, 0xd1, 0xb8, 0x3f, 0x00, 0x00, 0x00,
-      0xf6, 0x04, 0x25, 0x08, 0x03, 0xfe, 0x7f, 0x01,
-      0x75, 0x03, 0x0f, 0x05, 0xc3
+        0x4c, 0x8b, 0xd1, 0xb8, 0x3f, 0x00, 0x00, 0x00,
+        0xf6, 0x04, 0x25, 0x08, 0x03, 0xfe, 0x7f, 0x01,
+        0x75, 0x03, 0x0f, 0x05, 0xc3
     };
 
-    void* executableMemory = VirtualAlloc(0, sizeof(opcodes), MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+    void* executableMemory = malloc(sizeof(opcodes));
 
     if (executableMemory)
         memcpy(executableMemory, opcodes, sizeof(opcodes));
@@ -40,24 +40,28 @@ inline NTSTATUS MemoryUtils::NtReadVirtualMemory(const HANDLE processHandle, con
 
     auto NtReadVirtualMemory = reinterpret_cast<prototypes::fpNtReadVirtualMemory>(executableMemory);
 
-    NTSTATUS result = NtReadVirtualMemory(processHandle, baseAddress, buffer, size, (LPDWORD)&bytesRead);
-    VirtualFree(executableMemory, sizeof(opcodes), MEM_RELEASE);
+    NTSTATUS result = NtReadVirtualMemory(processHandle, baseAddress, buffer, size, (LPDWORD)bytesRead);
+    free(executableMemory);
+
     return result;
 }
 
 
 char* MemoryUtils::ScanEx(const char* pattern, char* begin, const size_t size, const HANDLE processHandle)
 {
+
     if (!pattern || !size)
         return nullptr;
 
     const size_t patternLength = strlen(pattern);
 
-    for (char* curr = begin; curr < begin + size; )
+    for (char* curr = begin; curr < begin + size;)
     {
-        MEMORY_BASIC_INFORMATION mbi;
+        MEMORY_BASIC_INFORMATION mbi{};
+
         if (!VirtualQueryEx(processHandle, curr, &mbi, sizeof(mbi)))
             break;
+
 
         if (!(mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY)))
         {
