@@ -55,7 +55,7 @@ namespace processutils
     /// </summary>
     /// <param name="hThread">Handle to the thread.</param>
     /// <returns>1 if the thread was started suspended, 0 if not, and -1 in case of an error.</returns>
-    static inline int ThreadStartedSuspended(HANDLE hThread);
+    inline int ThreadStartedSuspended(HANDLE hThread);
     /// <summary>
     /// Assesses the state of the main thread of a process, particularly if it was started suspended.
     /// </summary>

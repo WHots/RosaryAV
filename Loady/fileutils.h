@@ -68,7 +68,6 @@ namespace fileutils
 	int IsFileTypeUnknown(const wchar_t* filePath);
 	/// <summary>
 	/// Calculates the entropy of a file, which is a measure of the randomness in the file's data.
-	/// Useful for detecting compressed or encrypted files.
 	/// </summary>
 	/// <param name="filePath">The path to the file for which entropy is to be calculated.</param>
 	/// <returns>double: The entropy value of the file. Ranges from 0 (completely predictable) to 8 (completely random for 8-bit bytes).</returns>

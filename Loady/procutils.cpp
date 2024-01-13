@@ -58,8 +58,12 @@ namespace processutils
         int count = 0;
 
         for (size_t i = 0; i < buffer->HandleCount; ++i)
+        {
             if (buffer->Handles[i].ProcessId == pid && buffer->Handles[i].ObjectTypeNumber == type)
                 ++count;
+        }
+
+       
 
         return count;
     }
@@ -132,7 +136,7 @@ namespace processutils
     }
 
 
-    static inline int ThreadStartedSuspended(HANDLE hThread)
+    inline int ThreadStartedSuspended(HANDLE hThread)
     {
 
         ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
@@ -154,7 +158,6 @@ namespace processutils
 
     int GetOldestThreadStartFlag(const int pid)
     {
-
         HANDLE hMainThread = NULL;
         FILETIME earliestCreationTime{};
         int result = 0;
@@ -190,9 +193,13 @@ namespace processutils
                                         CloseHandle(hMainThread);
 
                                     hMainThread = hThread;
-                                }                                                               
+                                }
+                                else
+                                    CloseHandle(hThread);
                             }
-                            CloseHandle(hThread);
+                            else                           
+                                CloseHandle(hThread);
+                            
                         }
                     }
                 } while (Thread32Next(hThreadSnapshot, &te32));
@@ -208,6 +215,7 @@ namespace processutils
 
         return result;
     }
+
 
 
     int GetHiddenThreadCount(const int pid) 
@@ -273,12 +281,12 @@ namespace processutils
     }
 
 
-    int GetSectionHeader(const HANDLE hProcess, const char* sectionName, PIMAGE_SECTION_HEADER* targetSection) 
+    int GetSectionHeader(const HANDLE hProcess, const char* sectionName, PIMAGE_SECTION_HEADER* targetSection)
     {
 
-        if (!hProcess)        
+        if (!hProcess)
             return -1;
-       
+
 
         std::unique_ptr<HMODULE[]> modules(new HMODULE[1]);
         DWORD bytesNeeded;
@@ -288,7 +296,7 @@ namespace processutils
 
         TCHAR moduleName[MAX_PATH];
 
-        if (!GetModuleFileNameEx(hProcess, modules[0], moduleName, MAX_PATH) || !_tcsstr(moduleName, TEXT(".exe")))
+        if (!GetModuleFileNameExW(hProcess, modules[0], moduleName, MAX_PATH) || !_tcsstr(moduleName, TEXT(".exe")))
             return -1;
 
         MODULEINFO moduleInfo{};
@@ -300,8 +308,8 @@ namespace processutils
         const PIMAGE_DOS_HEADER dosHeader = reinterpret_cast<const PIMAGE_DOS_HEADER>(moduleBase);
         const PIMAGE_NT_HEADERS ntHeaders = reinterpret_cast<const PIMAGE_NT_HEADERS>(moduleBase + dosHeader->e_lfanew);
 
-        if (dosHeader->e_magic != IMAGE_DOS_SIGNATURE || ntHeaders->Signature != IMAGE_NT_SIGNATURE) 
-            return -1;  
+        if (dosHeader->e_magic != IMAGE_DOS_SIGNATURE || ntHeaders->Signature != IMAGE_NT_SIGNATURE)
+            return -1;
 
         const PIMAGE_SECTION_HEADER sectionHeaders = IMAGE_FIRST_SECTION(ntHeaders);
 

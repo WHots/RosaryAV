@@ -162,30 +162,29 @@ namespace fileutils
 
 
         std::array<long, 256> frequency{};
-        std::vector<char> buffer(1024 * 1024);
-        std::streamsize totalBytes = 0;
+        std::vector<char> buffer{};
 
-        while (file.read(buffer.data(), buffer.size()) || file.gcount())
+        std::istreambuf_iterator<char> fileIterator(file);
+        std::istreambuf_iterator<char> eos;
+
+        buffer.assign(fileIterator, eos);
+
+        std::for_each(buffer.begin(), buffer.end(), [&frequency](char c) 
         {
-            totalBytes += file.gcount();
-
-            std::for_each(buffer.begin(), buffer.begin() + file.gcount(), [&frequency](char c)
-            {
-                ++frequency[static_cast<unsigned char>(c)];
-            });
-        }
+            ++frequency[static_cast<unsigned char>(c)];
+        });
 
         double entropy = 0.0;
 
-        std::for_each(frequency.begin(), frequency.end(), [&entropy, totalBytes](long freq)
+        std::for_each(frequency.begin(), frequency.end(), [&entropy, totalBytes = buffer.size()](long freq) 
         {
-            if (freq > 0)
+            if (freq > 0) 
             {
-                double probability = static_cast<double>(freq) / totalBytes;
-                entropy -= probability * std::log2(probability);
+                double packedProbability = static_cast<double>(freq) / totalBytes;
+                entropy -= packedProbability * std::log2(packedProbability);
             }
         });
-
+        
         return entropy;
     }
 

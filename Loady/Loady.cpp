@@ -1,15 +1,20 @@
 //  #include <iostream>
 //  #include "processmanager.h"
+//#include "procutils.h"
+#include "processmanager.h"
 
-#include "procutils.h"
+
 
 int main()
 {    
    
+    //  tesetssstst
 
-    HANDLE hProcess = GetCurrentProcess();
-    PIMAGE_SECTION_HEADER textSection = nullptr;
+    std::optional<ProcessTally> managerOpt = ProcessTally::Create(GetCurrentProcessId());
 
+<<<<<<< HEAD
+    if (managerOpt.has_value())
+=======
     
     LPTSTR sidString = processutils::GetProcessSid(hProcess);
     if (!sidString) {
@@ -38,6 +43,7 @@ int main()
     /*std::optional<ProcessTally> managerOpt = ProcessTally::Create(GetCurrentProcessId());
 
     if (managerOpt.has_value()) 
+>>>>>>> 57be8ce40755930e69d4d8bb3c58b3d1331dd244
     {
         ProcessTally manager = managerOpt.value();
 
@@ -51,5 +57,5 @@ int main()
     else
     {
         printf("fails");
-    }*/
+    }
 }

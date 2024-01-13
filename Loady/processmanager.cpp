@@ -59,7 +59,7 @@ ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0), finish
     threatLevel += (dataWrittenMb >= 1) ? 2.25 : -2.75;
 
     finishedAnal = true;
-    threatLevel = (threatLevel > 100.0f) ? 100.0f : threatLevel;
+    threatLevel = (threatLevel > 100.0) ? 100.0 : threatLevel;
 }
 
 
