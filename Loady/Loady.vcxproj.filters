@@ -72,6 +72,9 @@
     <ClCompile Include="importmanager.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
+    <ClCompile Include="processfiltermanager.cpp">
+      <Filter>Managers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="strutils.h">
@@ -100,6 +103,9 @@
     </ClInclude>
     <ClInclude Include="importmanager.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="processfiltermanager.h">
+      <Filter>Header Files\Managers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

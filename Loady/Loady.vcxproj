@@ -137,6 +137,7 @@
     <ClCompile Include="importmanager.cpp" />
     <ClCompile Include="Loady.cpp" />
     <ClCompile Include="memutils.cpp" />
+    <ClCompile Include="processfiltermanager.cpp" />
     <ClCompile Include="processmanager.cpp" />
     <ClCompile Include="procutils.cpp" />
     <ClCompile Include="procutils.h" />
@@ -149,6 +150,7 @@
     <ClInclude Include="importmanager.h" />
     <ClInclude Include="memutils.h" />
     <ClInclude Include="ntdll.h" />
+    <ClInclude Include="processfiltermanager.h" />
     <ClInclude Include="prototypes.hpp" />
     <ClInclude Include="processmanager.h" />
     <ClInclude Include="strutils.h" />

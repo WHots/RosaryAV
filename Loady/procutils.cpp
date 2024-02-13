@@ -55,6 +55,9 @@ namespace processutils
 
         NTSTATUS status = NtQuerySystemInformation(static_cast<SYSTEM_INFORMATION_CLASS>(0x10), buffer.get(), 0xffffff, nullptr);
 
+        if (!NT_SUCCESS(status))
+            return -1;
+
         int count = 0;
 
         for (size_t i = 0; i < buffer->HandleCount; ++i)
@@ -62,9 +65,6 @@ namespace processutils
             if (buffer->Handles[i].ProcessId == pid && buffer->Handles[i].ObjectTypeNumber == type)
                 ++count;
         }
-
-       
-
         return count;
     }
 
@@ -215,7 +215,6 @@ namespace processutils
 
         return result;
     }
-
 
 
     int GetHiddenThreadCount(const int pid) 

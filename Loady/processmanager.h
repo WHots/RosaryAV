@@ -18,14 +18,7 @@ class ProcessTally
     /// Generic handle to target process.
     /// </summary>
     HANDLE hProcess;
-    /// <summary>
-    /// Complete target process threat level.
-    /// </summary>
-    double threatLevel;
-    /// <summary>
-    /// Indicates if the anal process has ran to completion or not.
-    /// </summary>
-    bool finishedAnal;
+    
 
 
     std::vector<const wchar_t*> processPrivilegeTokens = 
@@ -51,6 +44,15 @@ class ProcessTally
 
 
 public:
+
+    /// <summary>
+    /// Complete target process threat level.
+    /// </summary>
+    double threatLevel;
+    /// <summary>
+    /// Indicates if the anal process has ran to completion or not.
+    /// </summary>
+    bool finishedAnal;
 
 
     double GetThreatLevel() const 

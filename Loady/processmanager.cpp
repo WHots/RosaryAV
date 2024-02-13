@@ -28,8 +28,8 @@ ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0), finish
     }
 
 
-    PIMAGE_SECTION_HEADER header = nullptr; //  ...
-    threatLevel += (processutils::GetSectionHeader(hProcess, ".text", &header) == 1) ? -2.50 : 2.50;
+    // PIMAGE_SECTION_HEADER header = nullptr;
+    // threatLevel += (processutils::GetSectionHeader(hProcess, ".text", &header) == 1) ? -2.50 : 2.50;
 
 
     std::vector<std::pair<std::wstring, int>> handleTypeCounts{};
