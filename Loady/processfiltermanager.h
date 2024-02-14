@@ -13,7 +13,7 @@
 class ProcessFilterManager
 {
 
-    const LPTSTR currentProcessSID;
+    LPTSTR currentProcessSID;
     /// <summary>
     /// Retrieves the SID of the specified process.
     /// </summary>

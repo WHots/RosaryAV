@@ -280,47 +280,70 @@ namespace processutils
     }
 
 
-    int GetSectionHeader(const HANDLE hProcess, const char* sectionName, PIMAGE_SECTION_HEADER* targetSection)
+    bool SetTokenPrivilege(const char* privilegeName, bool enable)
     {
 
-        if (!hProcess)
-            return -1;
+        HANDLE hToken{};
+
+        if (!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES, &hToken)) 
+            return false;    
+
+        std::unique_ptr<void, decltype(&CloseHandle)> tokenHandle(hToken, CloseHandle);
+
+        LUID privilegeLuid{};
+
+        if (!LookupPrivilegeValueA(nullptr, privilegeName, &privilegeLuid))
+            return false;
+
+        TOKEN_PRIVILEGES tp{};
+        tp.PrivilegeCount = 1;
+        tp.Privileges[0].Luid = privilegeLuid;
+        tp.Privileges[0].Attributes = enable ? SE_PRIVILEGE_ENABLED : 0;
+
+        if (!AdjustTokenPrivileges(tokenHandle.get(), FALSE, &tp, sizeof(TOKEN_PRIVILEGES), nullptr, nullptr))
+            return false;       
+
+        return true;
+    }
 
 
-        std::unique_ptr<HMODULE[]> modules(new HMODULE[1]);
-        DWORD bytesNeeded;
+    std::vector<SectionInfo> GetSectionInfo(const HANDLE hProcess, const char* sectionName)
+    {
 
-        if (!K32EnumProcessModules(hProcess, modules.get(), sizeof(modules), &bytesNeeded))
-            return -1;
+        std::vector<SectionInfo> sections{};
 
-        TCHAR moduleName[MAX_PATH];
+        HMODULE hModule;
+        DWORD cbNeeded;
 
-        if (!GetModuleFileNameExW(hProcess, modules[0], moduleName, MAX_PATH) || !_tcsstr(moduleName, TEXT(".exe")))
-            return -1;
+        if (!EnumProcessModules(hProcess, &hModule, sizeof(hModule), &cbNeeded))
+            return sections;
 
         MODULEINFO moduleInfo{};
 
-        if (!K32GetModuleInformation(hProcess, modules[0], &moduleInfo, sizeof(moduleInfo)))
-            return -1;
+        if (!GetModuleInformation(hProcess, hModule, &moduleInfo, sizeof(moduleInfo)))
+            return sections;
 
         PBYTE moduleBase = reinterpret_cast<PBYTE>(moduleInfo.lpBaseOfDll);
-        const PIMAGE_DOS_HEADER dosHeader = reinterpret_cast<const PIMAGE_DOS_HEADER>(moduleBase);
-        const PIMAGE_NT_HEADERS ntHeaders = reinterpret_cast<const PIMAGE_NT_HEADERS>(moduleBase + dosHeader->e_lfanew);
+        auto dosHeader = reinterpret_cast<PIMAGE_DOS_HEADER>(moduleBase);
+        auto ntHeaders = reinterpret_cast<PIMAGE_NT_HEADERS>(moduleBase + dosHeader->e_lfanew);
+        auto sectionHeaders = IMAGE_FIRST_SECTION(ntHeaders);
 
-        if (dosHeader->e_magic != IMAGE_DOS_SIGNATURE || ntHeaders->Signature != IMAGE_NT_SIGNATURE)
-            return -1;
-
-        const PIMAGE_SECTION_HEADER sectionHeaders = IMAGE_FIRST_SECTION(ntHeaders);
-
-        for (int i = 0; i < ntHeaders->FileHeader.NumberOfSections; ++i)
+        for (int i = 0; i < ntHeaders->FileHeader.NumberOfSections; ++i) 
         {
-            if (strncmp((char*)sectionHeaders[i].Name, sectionName, IMAGE_SIZEOF_SHORT_NAME) == 0)
+            char nameBuffer[IMAGE_SIZEOF_SHORT_NAME + 1];
+            std::memcpy(nameBuffer, sectionHeaders[i].Name, IMAGE_SIZEOF_SHORT_NAME);
+            nameBuffer[IMAGE_SIZEOF_SHORT_NAME] = '\0';
+
+            if (std::strcmp(nameBuffer, sectionName) == 0) 
             {
-                *targetSection = &sectionHeaders[i];
-                return 1;
+                SectionInfo section;
+                section.name = nameBuffer;
+                section.virtualAddress = sectionHeaders[i].VirtualAddress;
+                section.sizeOfRawData = sectionHeaders[i].SizeOfRawData;
+                sections.emplace_back(section);
             }
         }
 
-        return 0;
+        return sections;
     }
 }

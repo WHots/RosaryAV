@@ -6,7 +6,7 @@
 
 
 ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0), finishedAnal(false)
-{
+{  
 
     hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
 
@@ -19,7 +19,7 @@ ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0), finish
 
     HANDLE hToken{};
       
-    if (OpenProcessToken(hProcess, TOKEN_QUERY, &hToken))
+    if (OpenProcessToken(hProcess, TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken))
     {
         for (const auto& privilege : processPrivilegeTokens)
             threatLevel += (processutils::IsTokenPresent(hToken, privilege) == 1) ? 2.5 : -2.0;
@@ -27,9 +27,10 @@ ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0), finish
         CloseHandle(hToken);
     }
 
+    // std::vector<processutils::SectionInfo> sectionInfo{};
+    // sectionInfo = processutils::GetSectionInfo(hProcess, ".text");
 
-    // PIMAGE_SECTION_HEADER header = nullptr;
-    // threatLevel += (processutils::GetSectionHeader(hProcess, ".text", &header) == 1) ? -2.50 : 2.50;
+    // threatLevel += (sectionInfo.empty()) ? -2.50 : 3.0;
 
 
     std::vector<std::pair<std::wstring, int>> handleTypeCounts{};

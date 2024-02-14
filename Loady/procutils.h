@@ -18,6 +18,14 @@
 namespace processutils
 {
 
+    struct SectionInfo 
+    {
+        std::string name;
+        DWORD virtualAddress;
+        DWORD sizeOfRawData;
+    };
+
+
     /// <summary>
     /// Retrieves the Process Environment Block (PEB) for the specified process.
     /// </summary>
@@ -78,15 +86,16 @@ namespace processutils
     /// </returns>
     int GetWriteCount(const HANDLE hProcess);
     /// <summary>
-    /// Attempts to locate a specific section header within a process's memory space.
+    /// Enables or disables a specified privilege in the access token of the current process. 
     /// </summary>
-    /// <param name="hProcess">Handle to the process whose memory will be searched.</param>
-    /// <param name="sectionName">The name of the section to be found.</param>
-    /// <param name="sectionHeader">Pointer to a variable that will hold the address of the found section header if successful, or nullptr otherwise.</param>
-    /// <returns>
-    /// - 1 if the specified section was successfully found.
-    /// - 0 if the section was not found or an error occurred.
-    /// - -1 if an invalid process handle was provided.
-    /// </returns>
-    int GetSectionHeader(const HANDLE hProcess, const char* sectionName, PIMAGE_SECTION_HEADER* targetSection);
+    /// <param name="privilegeName">The name of the privilege to adjust.</param>
+    /// <param name="enable">True to enable the privilege, False to disable it.</param>
+    /// <returns>True if the operation was successful, False otherwise.</returns>
+    bool SetTokenPrivilege(const char* privilegeName, bool enable);
+    /// <summary>
+    /// Enumerates the section headers of a process and returns detailed information about them.
+    /// </summary>
+    /// <param name="hProcess">Handle to the process whose sections will be enumerated.</param>
+    /// <returns>A vector of SectionInfo structures, each containing the name, virtual address, and size of a section. If no sections are found or an error occurs, returns an empty vector.</returns>
+    std::vector<SectionInfo> GetSectionInfo(const HANDLE hProcess, const char* sectionName);
 }
