@@ -8,7 +8,9 @@
 
 #include "strutils.h"
 #include "importmanager.h"
-#include "ntdll.h"
+#include "ntexapi.h"
+#include "ntmmapi.h"
+#include "ntpsapi.h"
 #include "prototypes.hpp"
 
 
@@ -23,6 +25,50 @@ namespace processutils
         std::string name;
         DWORD virtualAddress;
         DWORD sizeOfRawData;
+    };
+
+
+    enum class ObjectType : ULONG
+    {
+        Process = 0,
+        Thread = 1,
+        File = 2,
+        Device = 3,
+        Event = 4,
+        Mutex = 5,
+        Semaphore = 6,
+        Timer = 7,
+        Port = 8,
+        Key = 9,
+        Section = 10,
+        Job = 11,
+        ProcessGroup = 12,
+        Directory = 13,
+        SymbolicLink = 14,
+        Pipe = 15,
+        WaitablePort = 16,
+        RegistryKey = 17,
+        RegistryValue = 18,
+        Win32Driver = 19,
+        Win32Service = 20,
+        Win32Device = 21,
+        Win32Process = 22,
+        Win32Thread = 23,
+        Win32Event = 24,
+        Win32Mutex = 25,
+        Win32Semaphore = 26,
+        Win32Timer = 27,
+        Win32Port = 28,
+        Win32Key = 29,
+        Win32Section = 30,
+        Win32Job = 31,
+        Win32ProcessGroup = 32,
+        Win32Directory = 33,
+        Win32SymbolicLink = 34,
+        Win32Pipe = 35,
+        Win32WaitablePort = 36,
+        Win32RegistryKey = 37,
+        Win32RegistryValue = 38,
     };
 
 
@@ -98,4 +144,11 @@ namespace processutils
     /// <param name="hProcess">Handle to the process whose sections will be enumerated.</param>
     /// <returns>A vector of SectionInfo structures, each containing the name, virtual address, and size of a section. If no sections are found or an error occurs, returns an empty vector.</returns>
     std::vector<SectionInfo> GetSectionInfo(const HANDLE hProcess, const char* sectionName);
+    /// <summary>
+    /// Attempts to retrieve the process signer information.
+    /// </summary>
+    /// <param name="hProcess">Handle to the process.</param>
+    /// <returns>A UCHAR value representing the process signer (extracted from the protection level), or -1 in case of errors.</returns>
+    UCHAR GetProcessSigner(const HANDLE hProcess);
+
 }

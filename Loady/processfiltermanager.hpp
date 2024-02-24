@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <TlHelp32.h>
+
 #include "procutils.h"
 
 
@@ -30,5 +31,5 @@ public:
     /// Retrieves a list of process IDs whose SIDs match the SID of the current process.
     /// </summary>
     /// <returns>A vector containing the process IDs of the processes matching the SID of the current process.</returns>
-    std::vector<DWORD> getProcessesMatchingSID();
+    std::vector<DWORD> GetProcessesMatchingFilter();
 };

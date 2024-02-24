@@ -312,8 +312,8 @@ namespace processutils
 
         std::vector<SectionInfo> sections{};
 
-        HMODULE hModule;
-        DWORD cbNeeded;
+        HMODULE hModule = nullptr;
+        DWORD cbNeeded = 0;
 
         if (!EnumProcessModules(hProcess, &hModule, sizeof(hModule), &cbNeeded))
             return sections;
@@ -336,7 +336,7 @@ namespace processutils
 
             if (std::strcmp(nameBuffer, sectionName) == 0) 
             {
-                SectionInfo section;
+                SectionInfo section{};
                 section.name = nameBuffer;
                 section.virtualAddress = sectionHeaders[i].VirtualAddress;
                 section.sizeOfRawData = sectionHeaders[i].SizeOfRawData;
@@ -345,5 +345,24 @@ namespace processutils
         }
 
         return sections;
+    }
+
+
+    UCHAR GetProcessSigner(const HANDLE hProcess)
+    {
+
+        if (!hProcess)
+            return -1;
+
+
+        ImportUtils utils(GetModuleHandleW(L"ntdll.dll"));
+        auto NtQueryInformationProcess = utils.DynamicImporter<prototypes::fpNtQueryInformationProcess>("NtQueryInformationProcess");
+
+        PS_PROTECTION protectionInfo{};
+        DWORD returnLength = 0;
+
+        NTSTATUS status = NtQueryInformationProcess(hProcess, (PROCESSINFOCLASS)61, &protectionInfo, sizeof(protectionInfo), &returnLength);
+
+        return (NT_SUCCESS(status)) ? protectionInfo.Signer : -1;
     }
 }

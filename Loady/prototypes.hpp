@@ -2,8 +2,10 @@
 #include <Windows.h>
 #include <winternl.h>
 
-#include "ntdll.h"
+
+#include "ntldr.h"
 #include "accctrl.h"
+#include "ntmmapi.h"
 
 
 

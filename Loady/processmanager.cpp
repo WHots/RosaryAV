@@ -1,4 +1,4 @@
-#include "processmanager.h"
+#include "processmanager.hpp"
 
 
 
@@ -27,10 +27,11 @@ ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0), finish
         CloseHandle(hToken);
     }
 
-    // std::vector<processutils::SectionInfo> sectionInfo{};
-    // sectionInfo = processutils::GetSectionInfo(hProcess, ".text");
 
-    // threatLevel += (sectionInfo.empty()) ? -2.50 : 3.0;
+    //  std::vector<processutils::SectionInfo> sectionInfo{};
+    //  sectionInfo = processutils::GetSectionInfo(hProcess, ".text");
+
+    //  threatLevel += (sectionInfo.empty()) ? -2.50 : 3.0;
 
 
     std::vector<std::pair<std::wstring, int>> handleTypeCounts{};

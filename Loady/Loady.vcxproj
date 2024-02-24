@@ -137,6 +137,7 @@
     <ClCompile Include="importmanager.cpp" />
     <ClCompile Include="Loady.cpp" />
     <ClCompile Include="memutils.cpp" />
+    <ClCompile Include="ntpsapi.h" />
     <ClCompile Include="processfiltermanager.cpp" />
     <ClCompile Include="processmanager.cpp" />
     <ClCompile Include="procutils.cpp" />
@@ -149,10 +150,12 @@
     <ClInclude Include="fileutils.h" />
     <ClInclude Include="importmanager.h" />
     <ClInclude Include="memutils.h" />
-    <ClInclude Include="ntdll.h" />
-    <ClInclude Include="processfiltermanager.h" />
+    <ClInclude Include="ntexapi.h" />
+    <ClInclude Include="ntldr.h" />
+    <ClInclude Include="ntmmapi.h" />
+    <ClInclude Include="processfiltermanager.hpp" />
     <ClInclude Include="prototypes.hpp" />
-    <ClInclude Include="processmanager.h" />
+    <ClInclude Include="processmanager.hpp" />
     <ClInclude Include="strutils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

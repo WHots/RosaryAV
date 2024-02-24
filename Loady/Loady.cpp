@@ -5,8 +5,8 @@
 
 //#include <iostream>
 //#include "processmanager.h"
-#include "processfiltermanager.h"
-#include "processmanager.h"
+#include "processfiltermanager.hpp"
+#include "processmanager.hpp"
 //#include "processmanager.h"
 
 
@@ -40,7 +40,7 @@ int main() {
     }*/
 
     ProcessFilterManager manager;
-    std::vector<DWORD> matchingProcesses = manager.getProcessesMatchingSID();
+    std::vector<DWORD> matchingProcesses = manager.GetProcessesMatchingFilter();
 
     for (DWORD pid : matchingProcesses) {
         // std::cout << "Matching Process ID: " << pid << std::endl;

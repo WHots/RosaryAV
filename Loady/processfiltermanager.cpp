@@ -1,4 +1,4 @@
-#include "processfiltermanager.h"
+#include "processfiltermanager.hpp"
 
 
 
@@ -10,7 +10,7 @@ ProcessFilterManager::ProcessFilterManager() {
 }
 
 
-std::vector<DWORD> ProcessFilterManager::getProcessesMatchingSID()
+std::vector<DWORD> ProcessFilterManager::GetProcessesMatchingFilter()
 {
 
     std::vector<DWORD> matchingProcesses{};

@@ -75,6 +75,9 @@
     <ClCompile Include="processfiltermanager.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
+    <ClCompile Include="ntpsapi.h">
+      <Filter>windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="strutils.h">
@@ -86,13 +89,10 @@
     <ClInclude Include="prototypes.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ntdll.h">
-      <Filter>windows</Filter>
-    </ClInclude>
     <ClInclude Include="cheatsignatures.h">
       <Filter>Header Files\Signatures\Cheats</Filter>
     </ClInclude>
-    <ClInclude Include="processmanager.h">
+    <ClInclude Include="processmanager.hpp">
       <Filter>Header Files\Managers</Filter>
     </ClInclude>
     <ClInclude Include="fileutils.h">
@@ -104,8 +104,17 @@
     <ClInclude Include="importmanager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="processfiltermanager.h">
+    <ClInclude Include="processfiltermanager.hpp">
       <Filter>Header Files\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="ntexapi.h">
+      <Filter>windows</Filter>
+    </ClInclude>
+    <ClInclude Include="ntmmapi.h">
+      <Filter>windows</Filter>
+    </ClInclude>
+    <ClInclude Include="ntldr.h">
+      <Filter>windows</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
