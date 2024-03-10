@@ -1,13 +1,6 @@
-//  #include <iostream>
-//  #include "processmanager.h"
-//#include "procutils.h"
-//  #include "processmanager.h"
-
-//#include <iostream>
-//#include "processmanager.h"
+#include "rosary.hpp"
+#include "threadmanager.hpp"
 #include "processfiltermanager.hpp"
-#include "processmanager.hpp"
-//#include "processmanager.h"
 
 
 
@@ -17,49 +10,34 @@
 
 
 
-int main() {
 
-    
-    
 
-   /* DWORD procId = GetCurrentProcessId();
 
-    std::optional<ProcessTally> processTally = ProcessTally::Create(procId);
 
-    if (processTally.has_value()) 
-    {
-        double threatLevel = processTally->threatLevel;
-        bool finishedAnalysis = processTally->finishedAnal;
+int main() 
+{
 
-        std::cout << "Threat level of process " << procId << ": " << threatLevel << std::endl;
-        std::cout << "Analysis finished: " << std::boolalpha << finishedAnalysis << std::endl;
+    //  DWORD pid = GetCurrentProcessId();
+    ProcessFilterManager filterManager{};
+    std::vector<DWORD> matchingProcesses = filterManager.GetProcessesMatchingFilter();
 
+    ThreadManager launcher;
+
+    for (const auto& pid : matchingProcesses) {
+        launcher.addTask([pid](DWORD processId) { // Lambda with explicit parameter
+            ProcessAnalyzer analyzer(processId);
+            auto [result, errorCode] = analyzer.AnalyzeProcess();
+            // ... Handle the result ...
+            }, pid); // Pass pid to the Task constructor 
     }
-    else {
-        std::cerr << "Failed to create ProcessTally for process " << procId << std::endl;
-    }*/
 
-    ProcessFilterManager manager;
-    std::vector<DWORD> matchingProcesses = manager.GetProcessesMatchingFilter();
+    // Launch all the analysis tasks
+    launcher.LaunchAll();
 
-    for (DWORD pid : matchingProcesses) {
-        // std::cout << "Matching Process ID: " << pid << std::endl;
+    // Wait for all analysis tasks to complete
+    launcher.JoinAll();
 
-        std::optional<ProcessTally> processTally = ProcessTally::Create(pid);
 
-        if (processTally.has_value())
-        {
-            double threatLevel = processTally->threatLevel;
-            bool finishedAnalysis = processTally->finishedAnal;
-
-            std::cout << "Threat level of process " << pid << ": " << threatLevel << std::endl;
-            std::cout << "Analysis finished: " << std::boolalpha << finishedAnalysis << std::endl;
-
-        }
-        else {
-            std::cerr << "Failed to create ProcessTally for process " << pid << std::endl;
-        }
-    }
     
 
     return 0;

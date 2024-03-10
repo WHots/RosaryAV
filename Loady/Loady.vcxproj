@@ -142,7 +142,9 @@
     <ClCompile Include="processmanager.cpp" />
     <ClCompile Include="procutils.cpp" />
     <ClCompile Include="procutils.h" />
+    <ClCompile Include="rosary.cpp" />
     <ClCompile Include="strutils.cpp" />
+    <ClCompile Include="threadmanager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="accctrl.h" />
@@ -156,7 +158,9 @@
     <ClInclude Include="processfiltermanager.hpp" />
     <ClInclude Include="prototypes.hpp" />
     <ClInclude Include="processmanager.hpp" />
+    <ClInclude Include="rosary.hpp" />
     <ClInclude Include="strutils.h" />
+    <ClInclude Include="threadmanager.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
