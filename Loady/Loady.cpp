@@ -17,26 +17,23 @@
 int main() 
 {
 
-    //  DWORD pid = GetCurrentProcessId();
     ProcessFilterManager filterManager{};
     std::vector<DWORD> matchingProcesses = filterManager.GetProcessesMatchingFilter();
 
     ThreadManager launcher;
 
     for (const auto& pid : matchingProcesses) {
-        launcher.addTask([pid](DWORD processId) { // Lambda with explicit parameter
+        launcher.addTask([pid](DWORD processId) {
             ProcessAnalyzer analyzer(processId);
             auto [result, errorCode] = analyzer.AnalyzeProcess();
-            // ... Handle the result ...
-            }, pid); // Pass pid to the Task constructor 
+
+            }, pid); 
     }
 
-    // Launch all the analysis tasks
     launcher.LaunchAll();
-
-    // Wait for all analysis tasks to complete
     launcher.JoinAll();
 
+    // tests ...
 
     
 

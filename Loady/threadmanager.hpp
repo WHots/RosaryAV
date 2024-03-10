@@ -53,7 +53,7 @@ public:
     }
 
 
-    size_t getActiveThreadCount() const 
+    size_t GetActiveThreadCount() const 
     {
         return activeThreadCount_;
     }
