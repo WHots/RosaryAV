@@ -1,7 +1,5 @@
-#include "rosary.hpp"
-#include "threadmanager.hpp"
-#include "processfiltermanager.hpp"
-
+#include "memutils.h"
+#include <iostream>
 
 
 
@@ -17,25 +15,24 @@
 int main() 
 {
 
-    ProcessFilterManager filterManager{};
+    
+
+    /*ProcessFilterManager filterManager{};
     std::vector<DWORD> matchingProcesses = filterManager.GetProcessesMatchingFilter();
 
-    ThreadManager launcher;
+    ThreadManager launcher{};
 
-    for (const auto& pid : matchingProcesses) {
+    for (const auto& pid : matchingProcesses) 
+    {
         launcher.addTask([pid](DWORD processId) {
             ProcessAnalyzer analyzer(processId);
             auto [result, errorCode] = analyzer.AnalyzeProcess();
 
-            }, pid); 
+        }, pid); 
     }
 
     launcher.LaunchAll();
     launcher.JoinAll();
 
-    // tests ...
-
-    
-
-    return 0;
+    return 0;*/
 }

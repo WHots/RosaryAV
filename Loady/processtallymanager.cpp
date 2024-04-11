@@ -1,4 +1,4 @@
-#include "processmanager.hpp"
+#include "processtallymanager.hpp"
 
 
 
@@ -22,7 +22,7 @@ ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0), finish
     if (OpenProcessToken(hProcess, TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken))
     {
         for (const auto& privilege : processPrivilegeTokens)
-            threatLevel += (processutils::IsTokenPresent(hToken, privilege) == 1) ? 2.5 : -1.5;
+            threatLevel += (processutils::IsTokenPresent(hToken, privilege) == 1) ? 2.5 : -0.5;
 
         CloseHandle(hToken);
     }
@@ -47,10 +47,10 @@ ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0), finish
             threatLevel += (handleTypeCount.second >= 3) ? handleTypeCount.second : -1.0;
         }
         else if (handleTypeCount.first == L"Device")        
-            threatLevel += (handleTypeCount.second >= 5) ? handleTypeCount.second : -2.0;
+            threatLevel += (handleTypeCount.second >= 5) ? handleTypeCount.second : -0.25;
 
         else if (handleTypeCount.first == L"RegistryKey")
-            threatLevel += (handleTypeCount.second >= 2) ? handleTypeCount.second / 1.75 : -2.5;        
+            threatLevel += (handleTypeCount.second >= 2) ? handleTypeCount.second / 1.75 : -0.25;        
     }
 
 

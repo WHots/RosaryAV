@@ -133,13 +133,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="crytposignatures.h" />
+    <ClCompile Include="filetallymanager.cpp" />
     <ClCompile Include="fileutils.cpp" />
     <ClCompile Include="importmanager.cpp" />
     <ClCompile Include="Loady.cpp" />
     <ClCompile Include="memutils.cpp" />
     <ClCompile Include="ntpsapi.h" />
     <ClCompile Include="processfiltermanager.cpp" />
-    <ClCompile Include="processmanager.cpp" />
+    <ClCompile Include="processtallymanager.cpp" />
     <ClCompile Include="procutils.cpp" />
     <ClCompile Include="procutils.h" />
     <ClCompile Include="rosary.cpp" />
@@ -149,6 +150,7 @@
   <ItemGroup>
     <ClInclude Include="accctrl.h" />
     <ClInclude Include="cheatsignatures.h" />
+    <ClInclude Include="filetallymanager.hpp" />
     <ClInclude Include="fileutils.h" />
     <ClInclude Include="importmanager.h" />
     <ClInclude Include="memutils.h" />
@@ -157,7 +159,7 @@
     <ClInclude Include="ntmmapi.h" />
     <ClInclude Include="processfiltermanager.hpp" />
     <ClInclude Include="prototypes.hpp" />
-    <ClInclude Include="processmanager.hpp" />
+    <ClInclude Include="processtallymanager.hpp" />
     <ClInclude Include="rosary.hpp" />
     <ClInclude Include="strutils.h" />
     <ClInclude Include="threadmanager.hpp" />

@@ -82,7 +82,7 @@ namespace fileutils
 
         using namespace CryptoPP;
 
-        MD5 hash;
+        MD5 hash{};
         std::string digest;
 
         FileSource file(fileName.c_str(), true, new HashFilter(hash, new HexEncoder(new StringSink(digest))));

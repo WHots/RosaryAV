@@ -137,7 +137,7 @@ namespace processutils
     /// <param name="privilegeName">The name of the privilege to adjust.</param>
     /// <param name="enable">True to enable the privilege, False to disable it.</param>
     /// <returns>True if the operation was successful, False otherwise.</returns>
-    bool SetTokenPrivilege(const char* privilegeName, bool enable);
+    bool SetTokenPrivilege(const char* privilegeName, bool enable);  
     /// <summary>
     /// Enumerates the section headers of a process and returns detailed information about them.
     /// </summary>

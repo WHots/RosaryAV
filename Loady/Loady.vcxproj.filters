@@ -63,7 +63,7 @@
     <ClCompile Include="crytposignatures.h">
       <Filter>Header Files\Signatures\Cryptography</Filter>
     </ClCompile>
-    <ClCompile Include="processmanager.cpp">
+    <ClCompile Include="processtallymanager.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
     <ClCompile Include="fileutils.cpp">
@@ -84,6 +84,9 @@
     <ClCompile Include="rosary.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="filetallymanager.cpp">
+      <Filter>Managers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="strutils.h">
@@ -98,7 +101,7 @@
     <ClInclude Include="cheatsignatures.h">
       <Filter>Header Files\Signatures\Cheats</Filter>
     </ClInclude>
-    <ClInclude Include="processmanager.hpp">
+    <ClInclude Include="processtallymanager.hpp">
       <Filter>Header Files\Managers</Filter>
     </ClInclude>
     <ClInclude Include="fileutils.h">
@@ -126,6 +129,9 @@
       <Filter>Header Files\Managers</Filter>
     </ClInclude>
     <ClInclude Include="rosary.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="filetallymanager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,4 +1,5 @@
 #pragma once
+#include <Windows.h>
 #include <thread>
 #include <functional>
 #include <atomic>
@@ -57,7 +58,6 @@ public:
     {
         return activeThreadCount_;
     }
-
 
 private:
 
