@@ -19,14 +19,13 @@
 
 namespace fileutils
 {
-
 	/// <summary>
-	/// Retrieves the full path of the executable file of a specified process.
+	/// Retrieves the full path of the executable file associated with the specified process.
 	/// </summary>
-	/// <param name="hProcess">Handle to the process.</param>
-	/// <param name="outPath">String to store the path of the executable file.</param>
-	/// <returns>TRUE if the path is successfully retrieved, otherwise FALSE.</returns>
-	BOOL GetExecutablePathName(const HANDLE hProcess, std::string& outPath);
+	/// <param name="hProcess">The handle to the target process.</param>
+	/// <param name="outPath">A reference to a std::wstring that will be used to store the full path of the executable file.</param>
+	/// <returns>TRUE if the full path of the executable file was successfully retrieved, otherwise FALSE.</returns>
+	BOOL GetExecutablePathName(const HANDLE hProcess, std::wstring& outPath);
 	/// <summary>
 	/// Calculates the MD5 hash of a file.
 	/// </summary>
@@ -46,19 +45,22 @@ namespace fileutils
 	/// <returns>std::string: Returns the internal name of the file as a string. otherwise, empty string.</returns>
 	std::string GetFileInternalName(const wchar_t* filePath);
 	/// <summary>
-	/// Checks if a file has been patched by examining the file's version information.
+	/// Checks if the specified file is patched (i.e., has the VS_FF_PATCHED flag set in the version information).
 	/// </summary>
-	/// <param name="filePath">The path to the file to be checked for patches.</param>
-	/// <returns>int: Returns 1 if the file is patched, 0 if not patched, and -1 if unable to determine (e.g., if file version information is unavailable or an error occurs).</returns>
+	/// <param name="filePath">The full path to the file to be checked.</param>
+	/// <returns>
+	/// 1 if the file is patched, 0 if the file is not patched, and -1 if an error occurred while retrieving the version information.
+	/// </returns>
 	int FilePatched(const wchar_t* filePath);
 	/// <summary>
-	/// Retrieves the security identifier (SID) of the owner of a file.
+	/// Retrieves the security identifier (SID) of the owner of the specified file.
 	/// </summary>
-	/// <param name="filePath">A pointer to a null-terminated string that specifies the path of the file.</param>
-	/// <returns>A pointer to a null-terminated string representing the SID of the file's owner.
-	/// Returns nullptr if the function fails. The caller is responsible for freeing the
-	/// returned string using the standard C library function free.</returns>
-	LPTSTR GetFileOwnerSid(const wchar_t* filePath);
+	/// <param name="filePath">The full path to the file.</param>
+	/// <returns>
+	/// A string containing the SID of the file owner, or an empty string if an error occurred.
+	/// The caller is responsible for freeing the memory allocated for the SID string.
+	/// </returns>
+	std::wstring GetFileOwnerSid(const std::wstring& filePath);
 	/// <summary>
 	/// Determines if the file type is unknown based on its version information.
 	/// </summary>

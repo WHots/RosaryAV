@@ -8,19 +8,16 @@
 namespace fileutils
 {
 
-    BOOL GetExecutablePathName(const HANDLE hProcess, std::string& outPath)
+    BOOL GetExecutablePathName(const HANDLE hProcess, std::wstring& outPath)
     {
-
         wchar_t buffer[MAX_PATH];
 
         int result = K32GetModuleFileNameExW(hProcess, NULL, buffer, MAX_PATH);
 
         if (result != 0)
         {
-            std::wstring wstr(buffer);
-            outPath.assign(wstr.begin(), wstr.end());
+            outPath.assign(buffer);
         }
-
         return (result != 0);
     }
 
@@ -28,23 +25,25 @@ namespace fileutils
     int FilePatched(const wchar_t* filePath)
     {
 
-        DWORD lpdwHandle;
-        std::string internalName = "";
-
+        DWORD lpdwHandle = 0;
         DWORD size = GetFileVersionInfoSizeW(filePath, &lpdwHandle);
-        std::vector<char> data(size);
 
-        if (!GetFileVersionInfoW(filePath, 0, size, data.data()))
+        if (size == 0)     
+            return -1;
+        
+        std::unique_ptr<char[]> dataPtr(new char[size]);
+        char* data = dataPtr.get();
+
+        if (!GetFileVersionInfoW(filePath, 0, size, data))      
             return -1;
 
-        VS_FIXEDFILEINFO* fileInfo{};
-        UINT length;
+        VS_FIXEDFILEINFO* fileInfo = nullptr;
+        UINT length = 0;
 
-        if (VerQueryValueW(data.data(), L"\\", (LPVOID*)&fileInfo, &length))
-            return ((fileInfo->dwFileFlagsMask & VS_FF_PATCHED) && (fileInfo->dwFileFlags & VS_FF_PATCHED)) ? 1 : 0;
+        if (!VerQueryValueW(data, L"\\\\", reinterpret_cast<LPVOID*>(&fileInfo), &length) || fileInfo == nullptr)
+            return -1;
 
-
-        return -1;
+        return ((fileInfo->dwFileFlagsMask & VS_FF_PATCHED) && (fileInfo->dwFileFlags & VS_FF_PATCHED)) ? 1 : 0;
     }
 
 
@@ -114,41 +113,40 @@ namespace fileutils
     }
 
 
-    LPTSTR GetFileOwnerSid(const wchar_t* filePath)
+    std::wstring GetFileOwnerSid(const std::wstring& filePath) 
     {
 
         ImportUtils utils(GetModuleHandleW(L"advapi32.dll"));
-
+     
         auto GetNamedSecurityInfoW = utils.DynamicImporter<prototypes::fpGetNamedSecurityInfoW>("GetNamedSecurityInfoW");
+        auto ConvertSidToStringSidW = utils.DynamicImporter<prototypes::fpConvertSidToStringSidW>("ConvertSidToStringSidW");
 
-        if (!GetNamedSecurityInfoW)
-            return nullptr;
+        if (!GetNamedSecurityInfoW || !ConvertSidToStringSidW)
+            return std::wstring();
 
 
         PSECURITY_DESCRIPTOR pSD = nullptr;
         PSID ownerSID = nullptr;
-        DWORD res = GetNamedSecurityInfoW(filePath, SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION, &ownerSID, nullptr, nullptr, nullptr, &pSD);
+
+        DWORD res = GetNamedSecurityInfoW(filePath.c_str(), SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION, &ownerSID, nullptr, nullptr, nullptr, &pSD);
+
+        if (res != ERROR_SUCCESS)
+            return std::wstring();
 
         std::unique_ptr<void, decltype(&LocalFree)> sdGuard(pSD, LocalFree);
 
+        if (!IsValidSid(ownerSID)) 
+            return std::wstring();       
 
-        if (res != ERROR_SUCCESS)
-            return nullptr;
+        LPWSTR sidString = nullptr;
 
-        if (!IsValidSid(ownerSID))
-            return nullptr;
+        if (!ConvertSidToStringSidW(ownerSID, &sidString))
+            return std::wstring();
 
+        std::wstring result(sidString);
+        LocalFree(sidString);
 
-        LPTSTR sidString = nullptr;
-       
-        auto ConvertSidToStringSidW = utils.DynamicImporter<prototypes::fpConvertSidToStringSidW>("ConvertSidToStringSidW");
-
-        if (!ConvertSidToStringSidW || !ConvertSidToStringSidW(ownerSID, &sidString))
-            return nullptr;
-
-        std::unique_ptr<TCHAR, decltype(&LocalFree)> sidGuard(sidString, LocalFree);
-
-        return _tcsdup(sidString);
+        return result;
     }
 
 
