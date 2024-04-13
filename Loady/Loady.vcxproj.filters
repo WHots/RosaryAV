@@ -43,13 +43,13 @@
     <Filter Include="Header Files\Managers">
       <UniqueIdentifier>{18dfa65f-2221-42f9-a065-ed7a22bcbd1c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Utilities">
+      <UniqueIdentifier>{55b2ac55-7e7b-455d-849d-c6b00bc396ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Loady.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="procutils.h">
-      <Filter>Header Files</Filter>
     </ClCompile>
     <ClCompile Include="strutils.cpp">
       <Filter>Utils</Filter>
@@ -87,14 +87,14 @@
     <ClCompile Include="filetallymanager.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
+    <ClCompile Include="procutils.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="memorymanager.cpp">
+      <Filter>Managers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="strutils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="memutils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="prototypes.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -104,14 +104,8 @@
     <ClInclude Include="processtallymanager.hpp">
       <Filter>Header Files\Managers</Filter>
     </ClInclude>
-    <ClInclude Include="fileutils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="accctrl.h">
       <Filter>windows</Filter>
-    </ClInclude>
-    <ClInclude Include="importmanager.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="processfiltermanager.hpp">
       <Filter>Header Files\Managers</Filter>
@@ -131,8 +125,23 @@
     <ClInclude Include="rosary.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="importmanager.h">
+      <Filter>Header Files\Managers</Filter>
+    </ClInclude>
     <ClInclude Include="filetallymanager.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="fileutils.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="memutils.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="strutils.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="memorymanager.hpp">
+      <Filter>Header Files\Managers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

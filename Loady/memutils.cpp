@@ -31,7 +31,7 @@ inline std::byte* MemoryUtils::memmem(std::byte* haystack, size_t haystack_len, 
 
     return nullptr;
 }
-
+ 
 
 inline NTSTATUS MemoryUtils::NtReadVirtualMemory(const HANDLE processHandle, const PVOID baseAddress, const PVOID buffer, const size_t size, size_t* bytesRead) const
 {
@@ -50,14 +50,14 @@ inline NTSTATUS MemoryUtils::NtReadVirtualMemory(const HANDLE processHandle, con
 
     auto NtReadVirtualMemory = reinterpret_cast<prototypes::fpNtReadVirtualMemory>(executableMemory);
 
-    NTSTATUS result = NtReadVirtualMemory(processHandle, baseAddress, buffer, size, (LPDWORD)bytesRead);
+    NTSTATUS result = NtReadVirtualMemory(processHandle, baseAddress, buffer, size, (LPDWORD)bytesRead); // C4267
     free(executableMemory);
 
     return result;
 }
 
 
-inline char* MemoryUtils::GetModuleBaseAddressEx(const HANDLE hProcess, const std::wstring& moduleName) 
+inline char* MemoryUtils::GetModuleBaseAddressEx(const HANDLE hProcess, const std::wstring& moduleName)
 {
 
     HMODULE moduleHandle = nullptr;
@@ -74,10 +74,10 @@ inline char* MemoryUtils::GetModuleBaseAddressEx(const HANDLE hProcess, const st
     if (std::wstring(buffer).find(moduleName) == std::wstring::npos)
         return nullptr;
 
-    if (!moduleHandle)
-        return nullptr;
+    std::unique_ptr<char[]> moduleBaseAddress(new char[sizeof(HMODULE)]);
+    memcpy(moduleBaseAddress.get(), &moduleHandle, sizeof(HMODULE));
 
-    return reinterpret_cast<char*>(moduleHandle);
+    return moduleBaseAddress.release();
 }
 
 

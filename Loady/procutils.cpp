@@ -30,7 +30,7 @@ namespace processutils
     }
 
 
-    PVOID GetProcessHeapAddress(const HANDLE hProcess)
+    PVOID GetProcessHeapAddressEx(const HANDLE hProcess)
     {
 
         PEB* pebBase = PebBaseAddressEx(hProcess);
@@ -41,6 +41,39 @@ namespace processutils
 
         BOOL preadResult = ReadProcessMemory(hProcess, processHeapAddress, &processHeap, sizeof(processHeap), &bytesRead);
         return (preadResult && bytesRead == sizeof(processHeap)) ? processHeap : nullptr;
+    }
+
+
+    bool PEHeaderExistsEx(const HANDLE hProcess, PBYTE& pPEHeader) 
+    {
+
+        SYSTEM_INFO sysInfo{};
+        GetSystemInfo(&sysInfo);
+
+        MEMORY_BASIC_INFORMATION memInfo;
+        PBYTE pBaseAddress = nullptr;
+
+        while (VirtualQueryEx(hProcess, pBaseAddress, &memInfo, sizeof(memInfo)))
+        {
+            if (memInfo.State == MEM_COMMIT && memInfo.Type == MEM_IMAGE) 
+            {
+                BYTE signature[2];
+                SIZE_T bytesRead = 0;
+
+                if (ReadProcessMemory(hProcess, memInfo.BaseAddress, signature, sizeof(signature), &bytesRead) && bytesRead == sizeof(signature)) 
+                {
+                    if (signature[0] == 'P' && signature[1] == 'E') 
+                    {
+                        pPEHeader = static_cast<PBYTE>(memInfo.BaseAddress);
+                        return true;
+                    }
+                }
+            }
+
+            pBaseAddress += memInfo.RegionSize;
+        }
+
+        return false;
     }
 
 
@@ -67,7 +100,7 @@ namespace processutils
         }
         return count;
     }
-
+  
 
     PTSTR GetProcessSid(const HANDLE hProcess)
     {
@@ -96,7 +129,6 @@ namespace processutils
 
         if (!ConvertSidToStringSidW(reinterpret_cast<PTOKEN_USER>(buffer.get())->User.Sid, &sidString))
             return nullptr;
-
 
         return _tcsdup(sidString);
     }
@@ -156,13 +188,11 @@ namespace processutils
     }
 
 
-    int GetOldestThreadStartFlag(const int pid)
+    int GetStartedSuspendedThreadsCount(const DWORD pid)
     {
-        HANDLE hMainThread = NULL;
-        FILETIME earliestCreationTime{};
-        int result = 0;
 
         HANDLE hThreadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, pid);
+        int count = 0;
 
         if (hThreadSnapshot != INVALID_HANDLE_VALUE)
         {
@@ -173,47 +203,22 @@ namespace processutils
             {
                 do
                 {
-                    if (te32.th32OwnerProcessID == pid)
+                    HANDLE hThread = OpenThread(THREAD_QUERY_INFORMATION, FALSE, te32.th32ThreadID);
+
+                    if (hThread)
                     {
-                        HANDLE hThread = OpenThread(THREAD_QUERY_INFORMATION, FALSE, te32.th32ThreadID);
+                        count += ThreadStartedSuspended(hThread);
+                        CloseHandle(hThread);
+                    }                 
 
-                        if (hThread)
-                        {
-                            FILETIME creationTime, exitTime, kernelTime, userTime;
-
-                            if (GetThreadTimes(hThread, &creationTime, &exitTime, &kernelTime, &userTime))
-                            {
-                                LONG comparisonResult = CompareFileTime(&creationTime, &earliestCreationTime);
-
-                                if (hMainThread == NULL || comparisonResult == -1)
-                                {
-                                    earliestCreationTime = creationTime;
-
-                                    if (hMainThread)
-                                        CloseHandle(hMainThread);
-
-                                    hMainThread = hThread;
-                                }
-                                else
-                                    CloseHandle(hThread);
-                            }
-                            else                           
-                                CloseHandle(hThread);
-                            
-                        }
-                    }
+                    te32.dwSize = sizeof(THREADENTRY32);
                 } while (Thread32Next(hThreadSnapshot, &te32));
             }
+
             CloseHandle(hThreadSnapshot);
         }
 
-        if (hMainThread)
-        {
-            result = ThreadStartedSuspended(hMainThread);
-            CloseHandle(hMainThread);
-        }
-
-        return result;
+        return count;
     }
 
 
@@ -276,7 +281,7 @@ namespace processutils
             size = ioCounters.WriteTransferCount;
         
 
-        return (size > 0) ? size / 1024 / 1024 : 0;
+		return (size > 0) ? size / 1024 / 1024 : 0; // Mb
     }
 
 
@@ -284,9 +289,10 @@ namespace processutils
     {
 
         HANDLE hToken{};
+        
 
-        if (!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES, &hToken)) 
-            return false;    
+        if (!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES, &hToken))
+            return false;
 
         std::unique_ptr<void, decltype(&CloseHandle)> tokenHandle(hToken, CloseHandle);
 
@@ -301,7 +307,7 @@ namespace processutils
         tp.Privileges[0].Attributes = enable ? SE_PRIVILEGE_ENABLED : 0;
 
         if (!AdjustTokenPrivileges(tokenHandle.get(), FALSE, &tp, sizeof(TOKEN_PRIVILEGES), nullptr, nullptr))
-            return false;       
+            return false;
 
         return true;
     }

@@ -4,7 +4,6 @@
 
 
 
-
 ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0), finishedAnal(false)
 {  
 
@@ -14,7 +13,7 @@ ProcessTally::ProcessTally(DWORD procId) : pid(procId), threatLevel(0.0), finish
         return;
     
 
-    threatLevel += (processutils::GetOldestThreadStartFlag(pid) == 1) ? 4.0 : -4.0;
+    threatLevel += processutils::GetStartedSuspendedThreadsCount(pid);
 
 
     HANDLE hToken{};

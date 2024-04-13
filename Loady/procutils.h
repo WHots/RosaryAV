@@ -8,6 +8,7 @@
 
 #include "strutils.h"
 #include "importmanager.h"
+#include "memorymanager.hpp"
 #include "ntexapi.h"
 #include "ntmmapi.h"
 #include "ntpsapi.h"
@@ -83,7 +84,14 @@ namespace processutils
     /// </summary>
     /// <param name="hProcess">Handle to the process.</param>
     /// <returns>Address to the process heap, otherwise nullptr.</returns>
-    PVOID GetProcessHeapAddress(const HANDLE hProcess);
+    PVOID GetProcessHeapAddressEx(const HANDLE hProcess);
+    /// <summary>
+    /// Locates the Portable Executable (PE) header within the memory space of the specified process.
+    /// </summary>
+    /// <param name="hProcess">A handle to the target process with PROCESS_VM_READ and PROCESS_VM_OPERATION access rights.</param>
+    /// <param name="pPEHeader">Output parameter that receives the base address of the PE header if found, otherwise nullptr.</param>
+    /// <returns>True if the PE header was successfully located, false otherwise.</returns>
+    bool PEHeaderExistsEx(const HANDLE hProcess, PBYTE& pPEHeader);
     /// <summary>
     /// Gets the count of handles of a specified type within a given process.
     /// </summary>
@@ -111,11 +119,11 @@ namespace processutils
     /// <returns>1 if the thread was started suspended, 0 if not, and -1 in case of an error.</returns>
     inline int ThreadStartedSuspended(HANDLE hThread);
     /// <summary>
-    /// Assesses the state of the main thread of a process, particularly if it was started suspended.
+    /// Gets a collective count of threads in the target process that have a start flag representing a thread that has been started suspended..
     /// </summary>
     /// <param name="pid">Process identifier of the target process.</param>
-    /// <returns>State of the main thread, with 1 indicating suspended, 0 if not, and -1 in case of an error.</returns>
-    int GetOldestThreadStartFlag(const int pid);
+    /// <returns>Number of threads with the started suspended flag.</returns>
+    int GetStartedSuspendedThreadsCount(const DWORD pid);
     /// <summary>
     /// Retrieves the count of hidden threads within a specified process.
     /// </summary>
@@ -137,7 +145,7 @@ namespace processutils
     /// <param name="privilegeName">The name of the privilege to adjust.</param>
     /// <param name="enable">True to enable the privilege, False to disable it.</param>
     /// <returns>True if the operation was successful, False otherwise.</returns>
-    bool SetTokenPrivilege(const char* privilegeName, bool enable);  
+    bool SetTokenPrivilege(const char* privilegeName, bool enable);
     /// <summary>
     /// Enumerates the section headers of a process and returns detailed information about them.
     /// </summary>
@@ -150,5 +158,4 @@ namespace processutils
     /// <param name="hProcess">Handle to the process.</param>
     /// <returns>A UCHAR value representing the process signer (extracted from the protection level), or -1 in case of errors.</returns>
     UCHAR GetProcessSigner(const HANDLE hProcess);
-
 }
