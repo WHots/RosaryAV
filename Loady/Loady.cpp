@@ -31,7 +31,6 @@ int main() {
             std::cerr << "Failed to get executable path" << std::endl;
         }
     }
-    // ... (Rest of your error handling)
 }
 
     
